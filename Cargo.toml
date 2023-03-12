@@ -1,6 +1,6 @@
 [package]
 name = "super_clipboard"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 
 [profile.release]
@@ -9,9 +9,10 @@ strip = true
 opt-level = "z"
 
 [dependencies]
+tokio = "1.26.0"
+lazy_static = "1.4.0"
 clap = { version = "4.1.8", features = ["derive"] }
 druid = { version = "0.8.3", features = ["image-all"] }
+serde = { version = "1.0.155", features = ["derive"] }
 enigo = { version = "0.0.14", git = "https://github.com/enigo-rs/enigo" }
 preferences = { version = "3.0.0", git = "https://github.com/SergioRibera/preferences-rs" }
-lazy_static = "1.4.0"
-tokio = "1.26.0"
