@@ -41,28 +41,22 @@ fn check_clipboard(sender: Sender<Message>) {
     let mut last_str = ctx.get_text().unwrap_or_default();
 
     thread::spawn(move || loop {
-        match ctx.get_text() {
-            Ok(content) => {
-                if last_str != content && !content.is_empty() {
-                    println!("Content Received: {content}");
-                    last_str = content.clone();
-                    sender
-                        .send(Message::AddClipboard(ClipboardItem::from(content)))
-                        .unwrap();
-                }
+        if let Ok(content) = ctx.get_text() {
+            if last_str != content && !content.is_empty() {
+                println!("Content Received: {content}");
+                last_str = content.clone();
+                sender
+                    .send(Message::AddClipboard(ClipboardItem::from(content)))
+                    .unwrap();
             }
-            Err(_) => {}
         }
-        match ctx.get_image() {
-            Ok(image) => {
-                if !image.bytes.is_empty() {
-                    println!("Image Received: {image:?}");
-                    sender
-                        .send(Message::AddClipboard(ClipboardItem::from(image)))
-                        .unwrap();
-                }
+        if let Ok(image) = ctx.get_image() {
+            if !image.bytes.is_empty() {
+                println!("Image Received: {image:?}");
+                sender
+                    .send(Message::AddClipboard(ClipboardItem::from(image)))
+                    .unwrap();
             }
-            Err(_) => {}
         }
         thread::sleep(Duration::from_millis(200));
     });
@@ -80,7 +74,7 @@ pub fn start_daemon() -> Subscription<Event> {
                     let (sender, rec) = std::sync::mpsc::channel::<Message>();
 
                     track_mouse(sender.clone());
-                    check_clipboard(sender.clone());
+                    check_clipboard(sender);
                     (Some(Event::Connected), State::Connected(rec))
                 }
                 State::Connected(conn) => match conn.try_recv() {

@@ -1,7 +1,4 @@
-use iced::{
-    keyboard::{KeyCode, Modifiers},
-    window, Command,
-};
+use iced::{window, Command};
 
 use crate::{
     daemon,

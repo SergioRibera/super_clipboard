@@ -5,7 +5,7 @@ use iced::{
 
 use crate::ui::MainMessage;
 
-fn tip<'a>(tip_icon: svg::Handle, msg: &'a str) -> impl Into<Element<'a, MainMessage>> {
+fn tip(tip_icon: svg::Handle, msg: &str) -> impl Into<Element<'_, MainMessage>> {
     Row::new()
         .push(
             svg(tip_icon)
@@ -132,7 +132,7 @@ pub mod home {
                 .iter()
                 .enumerate()
                 .rev()
-                .map(|(i, item)| render_item(fmt, i, item).into())
+                .map(|(i, item)| render_item(fmt, i, item))
                 .collect(),
         )
         .width(Length::Fill)
@@ -221,7 +221,7 @@ pub mod settings {
         .height(Length::Shrink)
     }
 
-    pub fn list_elements<'a>(settings: &'a AppSettings) -> impl Into<Element<'a, MainMessage>> {
+    pub fn list_elements(settings: &AppSettings) -> impl Into<Element<'_, MainMessage>> {
         Column::new()
             .push(
                 button(text(settings.get_theme().toggle_str()).size(20.))
