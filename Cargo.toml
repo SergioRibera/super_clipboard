@@ -10,6 +10,7 @@ strip = true
 opt-level = "z"
 
 [dependencies]
+open = "4.0.0"
 iced_native = "0.9.1"
 arboard = { version = "3.2", features = ["wayland-data-control"] }
 clap = { version = "4.1.8", features = ["derive"] }
@@ -21,6 +22,11 @@ iced = { version = "0.8.0", default-features = false, features = [
     "svg",
     "default_system_font",
     "tokio",
+] }
+chrono = { version = "0.4.24", default-features = false, features = [
+    "clock",
+    "std",
+    "serde",
 ] }
 enigo = { version = "0.0.14", git = "https://github.com/enigo-rs/enigo" }
 preferences = { version = "3.0.0", git = "https://github.com/SergioRibera/preferences-rs" }
