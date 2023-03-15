@@ -22,18 +22,15 @@ args = ["fmt", "--all"]
 [tasks.clippy]
 description = "Check code quality"
 command = "cargo"
-env_files = [".env.development"]
 args = ["clippy", "--", "-D", "warnings"]
 
 [tasks.fix-clippy]
 description = "Fix code quality"
 command = "cargo"
-env_files = [".env.development"]
 args = ["fix", "--allow-dirty"]
 
 [tasks.test]
 description = "Check all unit test"
-env_files = [".env.development"]
 command = "cargo"
 args = ["test"]
 dependencies = ["fmt", "clippy"]
