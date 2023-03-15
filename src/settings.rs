@@ -33,7 +33,7 @@ pub enum ClipboardItem {
 
 #[must_use]
 pub fn load_settings() -> AppSettings {
-    AppSettings::load(&APPINFO, "settings").unwrap_or(AppSettings::default())
+    AppSettings::load(&APPINFO, "settings").unwrap_or_default()
 }
 
 pub fn save_settings(value: &AppSettings) {
