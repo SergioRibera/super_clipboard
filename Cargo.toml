@@ -1,5 +1,6 @@
 [package]
 name = "super_clipboard"
+authors = ["SergioRibera"]
 version = "0.0.1"
 edition = "2021"
 
@@ -9,10 +10,17 @@ strip = true
 opt-level = "z"
 
 [dependencies]
-tokio = "1.26.0"
-lazy_static = "1.4.0"
+iced_native = "0.9.1"
+arboard = { version = "3.2", features = ["wayland-data-control"] }
 clap = { version = "4.1.8", features = ["derive"] }
-druid = { version = "0.8.3", features = ["image-all"] }
 serde = { version = "1.0.155", features = ["derive"] }
+iced = { version = "0.8.0", default-features = false, features = [
+    "canvas",
+    "glow",
+    "image",
+    "svg",
+    "default_system_font",
+    "tokio",
+] }
 enigo = { version = "0.0.14", git = "https://github.com/enigo-rs/enigo" }
 preferences = { version = "3.0.0", git = "https://github.com/SergioRibera/preferences-rs" }
