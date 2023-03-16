@@ -14,6 +14,7 @@ pub struct AppSettings {
     store: bool,
     transparent: bool,
     format_date: String,
+    activation_keys: Vec<String>,
     clipboard: Vec<ClipboardItem>,
     #[serde(skip)]
     pub is_changed: bool,
@@ -50,6 +51,7 @@ impl Default for AppSettings {
             transparent: true,
             is_changed: false,
             format_date: "%d %b %Y - %H:%M:%S".to_string(),
+            activation_keys: vec!["LShift".to_string(), "V".to_string(), "Meta".to_string()],
             clipboard: Vec::new(),
         }
     }
@@ -82,6 +84,11 @@ impl AppSettings {
 
     pub fn set_format_date(&mut self, format_date: String) {
         self.format_date = format_date;
+        self.is_changed = true;
+    }
+
+    pub fn set_shortcut(&mut self, keys: Vec<String>) {
+        self.activation_keys = keys;
         self.is_changed = true;
     }
 
@@ -122,6 +129,10 @@ impl AppSettings {
 
     pub fn store(&self) -> bool {
         self.store
+    }
+
+    pub fn shortcut(&self) -> &[String] {
+        self.activation_keys.as_ref()
     }
 
     pub fn clipboard(&self) -> &[ClipboardItem] {

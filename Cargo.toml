@@ -12,6 +12,7 @@ opt-level = "z"
 [dependencies]
 open = "4.0.0"
 iced_native = "0.9.1"
+device_query = "1.1.1"
 arboard = { version = "3.2", features = ["wayland-data-control"] }
 clap = { version = "4.1.8", features = ["derive"] }
 serde = { version = "1.0.155", features = ["derive"] }
