@@ -3,7 +3,7 @@ https://user-images.githubusercontent.com/56278796/225697681-418086a9-a02e-4087-
 </br>
 <p align="center">
 	<img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/SergioRibera/super_clipboard/ci.yml?label=ci&style=flat-square">
-	<img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/SergioRibera/super_clipboard/build.yml?label=build&style=flat-square">
+	<img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/SergioRibera/super_clipboard/build.yml?style=flat-square">
     <a href="https://github.com/SergioRibera/super_clipboard/releases"><img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/SergioRibera/super_clipboard?label=download&style=flat-square"></a>
 </p>
 
