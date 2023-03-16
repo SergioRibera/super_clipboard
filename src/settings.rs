@@ -1,6 +1,7 @@
 #![allow(unused)]
 use arboard::ImageData;
 use chrono::prelude::*;
+use clap::ValueEnum;
 use preferences::Preferences;
 use serde::{Deserialize, Serialize};
 
@@ -20,7 +21,7 @@ pub struct AppSettings {
     pub is_changed: bool,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, ValueEnum)]
 pub enum ThemeType {
     Light,
     Dark,
