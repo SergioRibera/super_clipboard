@@ -19,7 +19,6 @@ jobs:
         rust_version: [stable]
         platform:
           - x86_64-unknown-linux-gnu
-          - aarch64-unknown-linux-gnu
 
     runs-on: ubuntu-latest
 
