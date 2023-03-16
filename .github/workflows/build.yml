@@ -23,9 +23,12 @@ jobs:
         run: |
           export DEBIAN_FRONTED=noninteractive
           sudo apt-get -qq update
-          sudo apt-get install -y libxkbcommon-dev
+          sudo apt-get install -y libxkbcommon-dev libx11-dev xserver-xorg-dev xorg-dev
       - name: build release
-        run: cargo build --release
+        uses: actions-rs/cargo@v1.0.1
+        with:
+          command: build
+          args: --release
       - name: Rename build
         run: |
           cp target/release/${{ env.APP_NAME }} ${{ env.APP_NAME }}_x86_64-unknown-linux-gnu
@@ -47,17 +50,28 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dsherret/rust-toolchain-file@v1
       - uses: Swatinem/rust-cache@v2
-      - name: Install cross
-        run: cargo install cross
+      - name: Install dependencies
+        run: |
+          export DEBIAN_FRONTED=noninteractive
+          sudo apt-get -qq update
+          sudo apt-get install -y libxkbcommon-dev libx11-dev xserver-xorg-dev xorg-dev
       - name: Build todos binary for Raspberry Pi 3/4 (64 bits)
-        run: cross build --verbose --release --target aarch64-unknown-linux-gnu
+        uses: actions-rs/cargo@v1.0.1
+        with:
+          use-cross: true
+          command: build
+          args: --release --target aarch64-unknown-linux-gnu
       - name: Archive todos binary
         uses: actions/upload-artifact@v1
         with:
           name: todos-aarch64-unknown-linux-gnu
           path: target/aarch64-unknown-linux-gnu/release/${{ env.APP_NAME }}
-      - name: Build todos binary for Raspberry Pi 2/3/4 (32 bits)
-        run: cross build --verbose --release --target armv7-unknown-linux-gnueabihf
+      - name: Build todos binary for Raspberry Pi 3/4 (32 bits)
+        uses: actions-rs/cargo@v1.0.1
+        with:
+          use-cross: true
+          command: build
+          args: --release --target armv7-unknown-linux-gnueabihf
       - name: Archive todos binary
         uses: actions/upload-artifact@v1
         with:
