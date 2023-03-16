@@ -140,6 +140,9 @@ impl AppSettings {
     }
 
     pub fn push(&mut self, item: ClipboardItem) {
+        if self.clipboard.len() + 1 >= self.max_capacity as usize {
+            self.clipboard.remove(0);
+        }
         self.clipboard.push(item);
         if self.store {
             self.is_changed = true;
