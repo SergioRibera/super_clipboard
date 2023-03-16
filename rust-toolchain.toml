@@ -1,4 +1,5 @@
 [toolchain]
 channel = "stable"
 profile = "default"
+targets = ["aarch64-unknown-linux-musl", "x86_64-unknown-linux-musl"]
 components = ["clippy", "rustfmt"]
