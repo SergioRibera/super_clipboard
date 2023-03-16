@@ -23,33 +23,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dsherret/rust-toolchain-file@v1
-      - name: Get current date
-        run: echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-
-      - name: Cache cargo registry
-        uses: actions/cache@v2.1.4
-        with:
-          path: ~/.cargo/registry
-          # Add date to the cache to keep it up to date
-          key: ${{ matrix.platform }}-stable-cargo-registry-${{ hashFiles('Cargo.toml') }}-${{ env.CURRENT_DATE }}
-          # Restore from outdated cache for speed
-          restore-keys: |
-            ${{ matrix.platform }}-stable-cargo-registry-${{ hashFiles('Cargo.toml') }}
-            ${{ matrix.platform }}-stable-cargo-registry-
-      - name: Cache cargo index
-        uses: actions/cache@v2.1.4
-        with:
-          path: ~/.cargo/git
-          # Add date to the cache to keep it up to date
-          key: ${{ matrix.platform }}-stable-cargo-index-${{ hashFiles('Cargo.toml') }}-${{ env.CURRENT_DATE }}
-          # Restore from outdated cache for speed
-          restore-keys: |
-            ${{ matrix.platform }}-stable-cargo-index-${{ hashFiles('Cargo.toml') }}
-            ${{ matrix.platform }}-stable-cargo-index-
+      - uses: Swatinem/rust-cache@v2
       - name: Install Linux Deps
-        run: sudo apt install gcc-multilib libpq-dev
+        run: sudo apt-get update
       - name: build release
         run: cargo build --release --target ${{ matrix.platform }}
       - name: Rename build
