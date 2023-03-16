@@ -42,7 +42,6 @@ pub enum RouterView {
 
 #[derive(Debug, Clone)]
 pub enum MainMessage {
-    FollowMouse,
     ClearClipboard,
     ThemeChangedToggle,
     Open(String),
@@ -61,6 +60,7 @@ pub enum SettingsModified {
     StoreClipboard(bool),
     ChangeTransparency(bool),
     DateFormat(String),
+    ChangeShortcut(String),
 }
 
 impl Application for MainApp {
@@ -96,7 +96,7 @@ impl Application for MainApp {
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         Subscription::batch(vec![
-            daemon::start_daemon().map(MainMessage::DaemonEvent),
+            daemon::start_daemon(self.settings.shortcut()).map(MainMessage::DaemonEvent),
             iced::time::every(Duration::from_millis(self.settings.tick_save()))
                 .map(MainMessage::CheckSettings),
         ])
@@ -148,7 +148,6 @@ impl Application for MainApp {
 
         container(
             mouse_listener(content)
-                .on_mouse_enter(MainMessage::FollowMouse)
                 .on_mouse_exit(MainMessage::DaemonEvent(daemon::Event::Message(
                     daemon::Message::ToggleVisibility(false),
                 ))),

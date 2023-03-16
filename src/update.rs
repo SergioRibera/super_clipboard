@@ -1,7 +1,10 @@
+use device_query::Keycode;
 use iced::{window, Command};
+use std::str::FromStr;
 
 use crate::{
     daemon,
+    gui::LISTEN_KEYBOARD,
     settings::{save_settings, ClipboardItem},
     ui::{MainApp, MainMessage, SettingsModified},
 };
@@ -9,8 +12,13 @@ use crate::{
 pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMessage> {
     match message {
         MainMessage::Open(url) => {
-            if !url.is_empty() {
+            if url.is_empty() {
+                return Command::none();
+            }
+            if url != "modify_key" {
                 open::that(url).unwrap_or_default();
+            } else {
+                LISTEN_KEYBOARD.store(true, std::sync::atomic::Ordering::SeqCst);
             }
             Command::none()
         }
@@ -29,10 +37,6 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
         }
         MainMessage::RemoveClipboard(i) => {
             app.settings.remove(i);
-            Command::none()
-        }
-        MainMessage::FollowMouse => {
-            app.follow = true;
             Command::none()
         }
         MainMessage::CheckSettings(_) => {
@@ -67,7 +71,7 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
             daemon::Event::Message(message) => match message {
                 daemon::Message::ToggleVisibility(v) => {
                     app.visible = v;
-                    app.follow = false;
+                    app.follow = !v;
                     if v {
                         window::change_mode(window::Mode::Windowed)
                     } else {
@@ -75,7 +79,7 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                     }
                 }
                 daemon::Message::ChangePosition((x, y)) => {
-                    if app.visible || app.follow {
+                    if app.follow {
                         window::move_to(x, y)
                     } else {
                         Command::none()
@@ -83,6 +87,10 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                 }
                 daemon::Message::AddClipboard(item) => {
                     app.settings.push(item);
+                    Command::none()
+                }
+                daemon::Message::ChangeKeys(v) => {
+                    app.settings.set_shortcut(v);
                     Command::none()
                 }
             },
@@ -103,6 +111,19 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                 SettingsModified::StoreClipboard(v) => app.settings.set_store(v),
                 SettingsModified::DateFormat(v) => app.settings.set_format_date(v),
                 SettingsModified::ChangeTransparency(v) => app.settings.set_transparent(v),
+                SettingsModified::ChangeShortcut(v) => {
+                    let v = v
+                        .split('+')
+                        .map(|k| {
+                            let r = Keycode::from_str(k);
+                            if r.is_ok() {
+                                return k.to_string();
+                            }
+                            String::new()
+                        })
+                        .collect::<Vec<String>>();
+                    app.settings.set_shortcut(v)
+                }
             }
             Command::none()
         }

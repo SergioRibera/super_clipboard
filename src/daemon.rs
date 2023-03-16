@@ -1,14 +1,18 @@
 use std::{
+    str::FromStr,
     sync::mpsc::{self, Sender},
     thread,
     time::Duration,
 };
 
 use arboard::Clipboard;
+use device_query::{DeviceQuery, DeviceState, Keycode};
 use enigo::{Enigo, MouseControllable};
 use iced::{subscription, Subscription};
 
-use crate::{settings::ClipboardItem, APP_HEIGHT, APP_MOUSE_MARGIN, APP_WIDTH};
+use crate::{
+    gui::LISTEN_KEYBOARD, settings::ClipboardItem, APP_HEIGHT, APP_MOUSE_MARGIN, APP_WIDTH,
+};
 
 fn track_mouse(sender: Sender<Message>) {
     thread::spawn(move || {
@@ -23,13 +27,45 @@ fn track_mouse(sender: Sender<Message>) {
                 // TODO: ideally here check if mouse is not hover window
                 let set_x = x - (APP_WIDTH / 2);
                 let set_y = if y > h / 2 {
-                    y - APP_HEIGHT - APP_MOUSE_MARGIN
+                    y - APP_HEIGHT + APP_MOUSE_MARGIN
                 } else {
-                    y + APP_MOUSE_MARGIN
+                    y - APP_MOUSE_MARGIN
                 };
                 sender
                     .send(Message::ChangePosition((set_x, set_y)))
                     .unwrap()
+            }
+            thread::sleep(Duration::from_millis(50));
+        }
+    });
+}
+
+fn listen_keyboard(shortcuts: Vec<Keycode>, sender: Sender<Message>) {
+    thread::spawn(move || {
+        let device_state = DeviceState::new();
+        loop {
+            let keys = device_state.get_keys();
+            if keys.is_empty() || keys.len() < 2 {
+                continue;
+            }
+
+            println!("Shortcuts: {shortcuts:?}\nKeys Pressed: {keys:?}");
+
+            let is_listening = LISTEN_KEYBOARD.load(std::sync::atomic::Ordering::SeqCst);
+
+            if !is_listening && keys == shortcuts {
+                println!("Show window");
+                sender.send(Message::ToggleVisibility(true)).unwrap()
+            } else {
+                if keys.contains(&Keycode::Escape) {
+                    LISTEN_KEYBOARD.store(false, std::sync::atomic::Ordering::SeqCst);
+                    continue;
+                }
+                sender
+                    .send(Message::ChangeKeys(
+                        keys.iter().map(|k| k.to_string()).collect(),
+                    ))
+                    .unwrap();
             }
             thread::sleep(Duration::from_millis(50));
         }
@@ -62,18 +98,24 @@ fn check_clipboard(sender: Sender<Message>) {
     });
 }
 
-pub fn start_daemon() -> Subscription<Event> {
+pub fn start_daemon(shortcuts: &[String]) -> Subscription<Event> {
     struct Daemon;
+
+    let shortcuts = shortcuts
+        .iter()
+        .flat_map(|k| Keycode::from_str(k.as_str()))
+        .collect::<Vec<Keycode>>();
 
     subscription::unfold(
         std::any::TypeId::of::<Daemon>(),
-        State::Disconnected,
-        |state| async move {
+        State::Disconnected(shortcuts),
+        |state| async {
             match state {
-                State::Disconnected => {
+                State::Disconnected(shortcuts) => {
                     let (sender, rec) = std::sync::mpsc::channel::<Message>();
 
                     track_mouse(sender.clone());
+                    listen_keyboard(shortcuts, sender.clone());
                     check_clipboard(sender);
                     (Some(Event::Connected), State::Connected(rec))
                 }
@@ -88,7 +130,7 @@ pub fn start_daemon() -> Subscription<Event> {
 
 #[derive(Debug)]
 enum State {
-    Disconnected,
+    Disconnected(Vec<Keycode>),
     Connected(mpsc::Receiver<Message>),
 }
 
@@ -103,4 +145,5 @@ pub enum Message {
     ToggleVisibility(bool),
     ChangePosition((i32, i32)),
     AddClipboard(ClipboardItem),
+    ChangeKeys(Vec<String>),
 }
