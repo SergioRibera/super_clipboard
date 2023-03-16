@@ -19,6 +19,14 @@ In search of a clipboard manager that is comfortable and I can have instantly ne
 
 > **NOTE:** The blur it's depends of your compositor
 
+### Usage
+On your startup WM script call binary as another task
+
+bspwm example
+```
+super_clipboard &
+```
+
 ### TODO
 - [ ] Fix keyboard shortcut initial parsing
 - [ ] Autopaste when select from history
