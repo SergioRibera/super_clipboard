@@ -1,6 +1,6 @@
-<p align="center">
-<video alt="Preview" autoplay loop src="https://raw.githubusercontent.com/SergioRibera/super_clipboard/main/.github/res/preview.mp4"/>
-</p>
+https://user-images.githubusercontent.com/56278796/225697681-418086a9-a02e-4087-8588-09fef558eaa6.mp4
+
+</br>
 <p align="center">
 	<img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/SergioRibera/super_clipboard/ci.yml?label=ci&style=flat-square">
 	<img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/SergioRibera/super_clipboard/build.yml?label=build&style=flat-square">
