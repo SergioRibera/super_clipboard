@@ -1,6 +1,7 @@
 [package]
 name = "super_clipboard"
 authors = ["SergioRibera"]
+description = "GUI Application for manage history clipboard; Cli options overwrite settings"
 version = "0.0.1"
 edition = "2021"
 
