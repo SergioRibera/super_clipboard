@@ -4,7 +4,7 @@ on:
     branches:
       - main
     paths-ignore:
-      - ".github/**"
+      - ".github/build.yml"
       - "Makefile.toml"
       - "README.md"
   pull_request:
