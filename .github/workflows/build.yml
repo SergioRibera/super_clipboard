@@ -23,7 +23,7 @@ jobs:
         run: |
           export DEBIAN_FRONTED=noninteractive
           sudo apt-get -qq update
-          sudo apt-get install -y libxkbcommon-dev libx11-dev xserver-xorg-dev xorg-dev
+          sudo apt-get install -y libxdo-dev
       - name: build release
         uses: actions-rs/cargo@v1.0.1
         with:
