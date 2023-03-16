@@ -7,11 +7,9 @@ mod settings;
 mod ui;
 mod update;
 
-use args::AppArgs;
-use clap::Parser;
+use args::parse_cli;
 use iced::{Application, Settings};
 use preferences::AppInfo;
-use settings::load_settings;
 use ui::MainApp;
 
 pub const APPINFO: AppInfo = AppInfo {
@@ -24,8 +22,7 @@ pub const APP_HEIGHT: i32 = 450;
 pub const APP_MOUSE_MARGIN: i32 = 25;
 
 fn main() -> iced::Result {
-    let _args = AppArgs::parse();
-    let settings = load_settings();
+    let settings = parse_cli();
 
     MainApp::run(Settings {
         window: iced::window::Settings {
