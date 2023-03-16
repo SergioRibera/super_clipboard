@@ -27,6 +27,7 @@ pub struct MainApp {
     pub view: RouterView,
     pub visible: bool,
     pub follow: bool,
+    back_icon: svg::Handle,
     tip_icon: svg::Handle,
     dark_icon: svg::Handle,
     light_icon: svg::Handle,
@@ -78,6 +79,7 @@ impl Application for MainApp {
                 follow: false,
                 view: RouterView::Home,
                 clipboard_ctx: Clipboard::new().unwrap(),
+                back_icon: svg::Handle::from_path(format!("{manifest_dir}/assets/back.svg")),
                 tip_icon: svg::Handle::from_path(format!("{manifest_dir}/assets/hint.svg")),
                 dark_icon: svg::Handle::from_path(format!("{manifest_dir}/assets/night-mode.svg")),
                 light_icon: svg::Handle::from_path(format!("{manifest_dir}/assets/light-mode.svg")),
@@ -131,7 +133,7 @@ impl Application for MainApp {
                 .height(Length::Fill)
                 .into(),
             RouterView::Settings => Column::new()
-                .push(settings::back_bar(self.tip_icon.clone()))
+                .push(settings::back_bar(self.back_icon.clone()))
                 .push(settings::tip_section(self.tip_icon.clone()))
                 .push(
                     Row::new()
