@@ -49,7 +49,7 @@ dependencies = ["fix-fmt", "fix-clippy"]
 # RUST_LOG=info,castle=debug cargo watch -c -d 0.1 -s 'mold -run cargo run'
 [tasks.dev]
 description = "Run binary/lib as dev"
-script = { pre = "cargo clean", main = "cargo watch -c -d 0.1 -s 'mold -run cargo run --features inspect'" }
+script = "cargo watch -c -d 0.1 -s 'mold -run cargo run'"
 
 [tasks.build]
 description = "Generate release binary/lib"
