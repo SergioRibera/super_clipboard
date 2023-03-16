@@ -23,3 +23,5 @@ In search of a clipboard manager that is comfortable and I can have instantly ne
 - [ ] Fix keyboard shortcut initial parsing
 - [ ] Autopaste when select from history
 - [ ] Fix auto hide and show window
+
+Icons by <a target="_blank" href="https://icons8.com">Icons8</a>
