@@ -48,6 +48,8 @@ jobs:
           restore-keys: |
             ${{ matrix.platform }}-stable-cargo-index-${{ hashFiles('Cargo.toml') }}
             ${{ matrix.platform }}-stable-cargo-index-
+      - name: Install Linux Deps
+        run: sudo apt install gcc-multilib libpq-dev
       - name: build release
         run: cargo build --release --target ${{ matrix.platform }}
       - name: Rename build
