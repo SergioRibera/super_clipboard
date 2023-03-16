@@ -12,34 +12,54 @@ on:
       - "*"
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        rust_version: [stable]
-        platform:
-          - x86_64-unknown-linux-gnu
-
+  build_linux:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
       - uses: dsherret/rust-toolchain-file@v1
       - uses: Swatinem/rust-cache@v2
-      - name: Install Linux Deps
-        run: sudo apt-get update
+      - name: Install dependencies
+        run: |
+          export DEBIAN_FRONTED=noninteractive
+          sudo apt-get -qq update
+          sudo apt-get install -y libxkbcommon-dev
       - name: build release
-        run: cargo build --release --target ${{ matrix.platform }}
+        run: cargo build --release
       - name: Rename build
         run: |
-          cp target/${{ matrix.platform }}/release/${{ env.APP_NAME }} ${{ env.APP_NAME }}_${{ matrix.platform.target }}
+          cp target/release/${{ env.APP_NAME }} ${{ env.APP_NAME }}_x86_64-unknown-linux-gnu
       - name: Upload artifact
         uses: actions/upload-artifact@master
         with:
-          name: ${{ env.APP_NAME }}_${{ matrix.platform }}
-          path: ${{ env.APP_NAME }}_${{ matrix.platform }}
+          name: ${{ env.APP_NAME }}_x86_64-unknown-linux-gnu
+          path: ${{ env.APP_NAME }}_x86_64-unknown-linux-gnu
       - name: Upload Release
         uses: softprops/action-gh-release@v1
         with:
           prerelease: ${{ contains(github.ref_name, 'a') }}
-          files: ${{ env.APP_NAME }}_${{ matrix.platform }}
+          files: ${{ env.APP_NAME }}_x86_64-unknown-linux-gnu
+
+  build_raspberry:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dsherret/rust-toolchain-file@v1
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cross
+        run: cargo install cross
+      - name: Build todos binary for Raspberry Pi 3/4 (64 bits)
+        run: cross build --verbose --release --target aarch64-unknown-linux-gnu
+      - name: Archive todos binary
+        uses: actions/upload-artifact@v1
+        with:
+          name: todos-aarch64-unknown-linux-gnu
+          path: target/aarch64-unknown-linux-gnu/release/${{ env.APP_NAME }}
+      - name: Build todos binary for Raspberry Pi 2/3/4 (32 bits)
+        run: cross build --verbose --release --target armv7-unknown-linux-gnueabihf
+      - name: Archive todos binary
+        uses: actions/upload-artifact@v1
+        with:
+          name: todos-armv7-unknown-linux-gnueabihf
+          path: target/armv7-unknown-linux-gnueabihf/release/${{ env.APP_NAME }}

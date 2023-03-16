@@ -5,6 +5,7 @@ on:
       - main
     paths-ignore:
       - ".github/build.yml"
+      - "Cross.toml"
       - "Makefile.toml"
       - "README.md"
   pull_request:
