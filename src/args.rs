@@ -22,9 +22,9 @@ pub struct AppArgs {
     #[clap(long, short, help = "Set date custom formated")]
     pub(self) format_date: Option<String>,
     #[clap(long, short, help = "Allow save history clipboard session")]
-    pub(self) store: bool,
+    pub(self) store: Option<bool>,
     #[clap(long, short, help = "Set application transparent")]
-    pub(self) transparent: bool,
+    pub(self) transparent: Option<bool>,
 }
 
 pub fn parse_cli() -> AppSettings {
@@ -47,12 +47,16 @@ pub fn parse_cli() -> AppSettings {
         settings.set_format_date(v);
     }
 
-    if args.store != settings.store() {
-        settings.set_store(args.store);
+    if let Some(v) = args.store {
+        if v != settings.store() {
+            settings.set_store(v);
+        }
     }
 
-    if args.transparent != settings.transparent() {
-        settings.set_transparent(args.transparent);
+    if let Some(v) = args.transparent {
+        if v != settings.transparent() {
+            settings.set_transparent(v);
+        }
     }
 
     settings
