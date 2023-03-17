@@ -13,6 +13,9 @@ use iced::{Application, Settings};
 use preferences::AppInfo;
 use ui::MainApp;
 
+#[global_allocator]
+static A: rlsf::SmallGlobalTlsf = rlsf::SmallGlobalTlsf::new();
+
 pub const APPINFO: AppInfo = AppInfo {
     name: env!("CARGO_PKG_NAME"),
     author: env!("CARGO_PKG_AUTHORS"),
