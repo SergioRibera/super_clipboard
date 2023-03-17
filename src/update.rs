@@ -1,4 +1,5 @@
 use iced::{window, Command};
+use log::trace;
 
 use crate::{
     daemon,
@@ -13,10 +14,10 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
             if url.is_empty() {
                 return Command::none();
             }
-            if url != "modify_key" {
-                open::that(url).unwrap_or_default();
-            } else {
+            if url == "modify_key" {
                 LISTEN_KEYBOARD.store(true, std::sync::atomic::Ordering::SeqCst);
+            } else {
+                open::that(url).unwrap_or_default();
             }
             Command::none()
         }
@@ -73,6 +74,7 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                     if v {
                         window::change_mode(window::Mode::Windowed)
                     } else {
+                        LISTEN_KEYBOARD.store(true, std::sync::atomic::Ordering::SeqCst);
                         window::change_mode(window::Mode::Hidden)
                     }
                 }
@@ -88,7 +90,10 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                     Command::none()
                 }
                 daemon::Message::ChangeKeys(v) => {
-                    app.settings.set_shortcut(v);
+                    if app.visible {
+                        trace!("Daemon Change Keys");
+                        app.settings.set_shortcut(v);
+                    }
                     Command::none()
                 }
             },
@@ -110,6 +115,7 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                 SettingsModified::DateFormat(v) => app.settings.set_format_date(v),
                 SettingsModified::ChangeTransparency(v) => app.settings.set_transparent(v),
                 SettingsModified::ChangeShortcut(v) => {
+                    trace!("Settigns Change Keys");
                     let v = v.split('+').map(|k| k.to_string()).collect::<Vec<String>>();
                     app.settings.set_shortcut(v)
                 }

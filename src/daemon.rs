@@ -6,7 +6,7 @@ use std::{
 
 use arboard::Clipboard;
 use device_query::{DeviceQuery, DeviceState, Keycode};
-use enigo::{Enigo, MouseControllable};
+use display_info::DisplayInfo;
 use iced::{subscription, Subscription};
 use log::{debug, info, trace};
 
@@ -17,17 +17,37 @@ use crate::{
     APP_HEIGHT, APP_MOUSE_MARGIN, APP_WIDTH,
 };
 
-fn track_mouse(coords: (i32, i32), h: i32, x: &mut i32, y: &mut i32, sender: SyncSender<Message>) {
+fn track_mouse(coords: (i32, i32), x: &mut i32, y: &mut i32, sender: SyncSender<Message>) {
     let (new_x, new_y) = coords;
     if *x != new_x || *y != new_y {
         *x = new_x;
         *y = new_y;
         // TODO: ideally here check if mouse is not hover window
-        let set_x = *x - (APP_WIDTH / 2);
-        let set_y = if *y > h / 2 {
-            *y - APP_HEIGHT + APP_MOUSE_MARGIN
+        let (set_x, set_y) = if let Ok(display_info) = DisplayInfo::from_point(new_x, new_y) {
+            debug!("Device Information based on point ({new_x}x{new_y}): {display_info:?}");
+            let x = if new_x
+                > (display_info.y + display_info.width as i32) - APP_WIDTH - APP_MOUSE_MARGIN
+            {
+                // right limit
+                new_x - (APP_WIDTH - APP_MOUSE_MARGIN)
+            } else if new_x < display_info.x + APP_WIDTH + APP_MOUSE_MARGIN {
+                // Left
+                new_x
+            } else {
+                // center or default
+                new_x - (APP_WIDTH / 2)
+            };
+            let y =
+                if new_y > ((display_info.y + display_info.height as i32) / 2) - APP_MOUSE_MARGIN {
+                    // top
+                    new_y - APP_HEIGHT + APP_MOUSE_MARGIN
+                } else {
+                    // bottom
+                    new_y - APP_MOUSE_MARGIN
+                };
+            (x, y)
         } else {
-            *y - APP_MOUSE_MARGIN
+            (new_x - (APP_WIDTH / 2), new_y - APP_MOUSE_MARGIN)
         };
         debug!("New mouse position: {set_x}x{set_y}");
         trace!("Sending new mouse position");
@@ -39,17 +59,18 @@ fn track_mouse(coords: (i32, i32), h: i32, x: &mut i32, y: &mut i32, sender: Syn
 }
 
 fn listen_keyboard(keys: Vec<Keycode>, shortcuts: Vec<Keycode>, sender: SyncSender<Message>) {
-    if keys.is_empty() || keys.len() < 2 {
+    if keys.is_empty() {
         return;
     }
 
     trace!("Get AtomicBool Ordering::SeqCst; LISTEN_KEYBOARD");
     let is_listening = LISTEN_KEYBOARD.load(std::sync::atomic::Ordering::SeqCst);
 
+    debug!("LISTEN_KEYBOARD: {is_listening}");
     if !is_listening && keys == shortcuts {
-        info!("Shortcut pressed; Showing window; Set true to LISTEN_KEYBOARD");
+        info!("Shortcut pressed; Showing window");
         sender.send(Message::ToggleVisibility(true)).unwrap()
-    } else {
+    } else if is_listening {
         if keys.contains(&Keycode::Escape) {
             info!("Set false to LISTEN_KEYBOARD");
             LISTEN_KEYBOARD.store(false, std::sync::atomic::Ordering::SeqCst);
@@ -112,11 +133,9 @@ pub fn start_daemon(shortcuts: &[String]) -> Subscription<Event> {
                         let device_state = DeviceState::new();
                         let (mut x, mut y) = (0, 0);
                         trace!("Device Query instance created");
-                        let h = Enigo::new().main_display_size().1;
                         loop {
                             track_mouse(
                                 device_state.get_mouse().coords,
-                                h,
                                 &mut x,
                                 &mut y,
                                 sender.clone(),
