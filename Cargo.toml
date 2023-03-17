@@ -2,7 +2,7 @@
 name = "super_clipboard"
 authors = ["SergioRibera"]
 description = "GUI Application for manage history clipboard; Cli options overwrite settings"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 
 [profile.release]
