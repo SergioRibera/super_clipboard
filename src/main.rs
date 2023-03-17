@@ -3,6 +3,7 @@
 mod args;
 mod daemon;
 mod gui;
+mod keys;
 mod settings;
 mod ui;
 mod update;
