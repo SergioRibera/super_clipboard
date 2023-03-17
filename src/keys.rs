@@ -106,6 +106,6 @@ pub fn keycode_from_str(s: &str) -> Keycode {
 }
 
 pub fn keycode_to_str(k: &Keycode) -> String {
-    println!("Keycode To Str: {k:?}");
+    log::debug!("Key to string: {k:?}");
     format!("{k:?}")
 }
