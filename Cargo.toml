@@ -13,6 +13,7 @@ opt-level = "z"
 [dependencies]
 open = "4.0.0"
 log = "0.4.17"
+rlsf = "0.2.1"
 env_logger = "0.10.0"
 iced_native = "0.9.1"
 device_query = "1.1.1"
@@ -24,7 +25,7 @@ iced = { version = "0.8.0", default-features = false, features = [
     "glow",
     "image",
     "svg",
-    "default_system_font",
+    # "default_system_font",
     "async-std",
 ] }
 chrono = { version = "0.4.24", default-features = false, features = [
