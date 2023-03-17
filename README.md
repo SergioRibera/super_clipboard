@@ -15,6 +15,7 @@ In search of a clipboard manager that is comfortable and I can have instantly ne
 - Text and Image clipboard
 - Big clipboard history
 - Follow cursor
+- Position based on the display of each screen
 - Transparent UI
 
 > **NOTE:** The blur it's depends of your compositor
@@ -43,7 +44,9 @@ SUPER_CLIPBOARD_LOG=off,super_clipboard::daemon=info super_clipboard
 ### TODO
 - [x] Fix keyboard shortcut initial parsing
 - [x] Fix performance increase
-- [ ] Autopaste when select from history
+- [x] Position based on the display of each screen
+- [x] Fix Unnautorize remap shortcut
 - [x] Fix auto hide and show window
+- [ ] Autopaste when select from history
 
 Icons by <a target="_blank" href="https://icons8.com">Icons8</a>
