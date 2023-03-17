@@ -12,6 +12,8 @@ opt-level = "z"
 
 [dependencies]
 open = "4.0.0"
+log = "0.4.17"
+env_logger = "0.10.0"
 iced_native = "0.9.1"
 device_query = "1.1.1"
 arboard = { version = "3.2", features = ["wayland-data-control"] }
@@ -23,7 +25,7 @@ iced = { version = "0.8.0", default-features = false, features = [
     "image",
     "svg",
     "default_system_font",
-    "tokio",
+    "async-std",
 ] }
 chrono = { version = "0.4.24", default-features = false, features = [
     "clock",

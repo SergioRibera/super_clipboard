@@ -23,12 +23,16 @@ pub const APP_HEIGHT: i32 = 450;
 pub const APP_MOUSE_MARGIN: i32 = 25;
 
 fn main() -> iced::Result {
+    env_logger::Builder::from_env(env_logger::Env::new().filter_or("SUPER_CLIPBOARD_LOG", "warn"))
+        .init();
     let settings = parse_cli();
+
+    log::trace!("Before to run Application");
 
     MainApp::run(Settings {
         window: iced::window::Settings {
             size: (APP_WIDTH as u32, APP_HEIGHT as u32),
-            visible: true,
+            visible: false,
             resizable: false,
             decorations: false,
             transparent: settings.transparent(),

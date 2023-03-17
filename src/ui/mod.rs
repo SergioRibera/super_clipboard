@@ -8,6 +8,7 @@ use iced::{
     Element, Length, Theme,
 };
 use iced::{Application, Color, Command, Padding, Subscription};
+use log::{info, trace};
 
 use crate::daemon;
 use crate::gui::{home, settings};
@@ -72,6 +73,7 @@ impl Application for MainApp {
 
     fn new(settings: Self::Flags) -> (Self, Command<Self::Message>) {
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        trace!("Creating Iced Application");
         (
             Self {
                 settings,
@@ -97,6 +99,7 @@ impl Application for MainApp {
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
+        trace!("Subscription Batch");
         Subscription::batch(vec![
             daemon::start_daemon(self.settings.shortcut()).map(MainMessage::DaemonEvent),
             iced::time::every(Duration::from_millis(self.settings.tick_save()))
@@ -105,10 +108,12 @@ impl Application for MainApp {
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+        info!("Update Commands");
         handle_update(self, message)
     }
 
     fn view(&self) -> Element<MainMessage> {
+        trace!("Render Application");
         let content: Element<MainMessage> = match self.view {
             RouterView::Home => Column::new()
                 .push(home::top_bar(
@@ -149,9 +154,9 @@ impl Application for MainApp {
         };
 
         container(
-            mouse_listener(content).on_mouse_exit(MainMessage::DaemonEvent(
-                daemon::Event::Message(daemon::Message::ToggleVisibility(false)),
-            )),
+            mouse_listener(content), // .on_mouse_exit(MainMessage::DaemonEvent(
+                                     //     daemon::Event::Message(daemon::Message::ToggleVisibility(false)),
+                                     // )),
         )
         .width(Length::Fill)
         .height(Length::Fill)
@@ -161,6 +166,7 @@ impl Application for MainApp {
     }
 
     fn theme(&self) -> Theme {
+        trace!("Set Theme");
         let primary = Color::from_rgba8(0x77, 0x8f, 0x9b, 1.);
         match self.settings.get_theme() {
             ThemeType::Light => {
