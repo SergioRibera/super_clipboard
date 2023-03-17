@@ -1,6 +1,4 @@
-use device_query::Keycode;
 use iced::{window, Command};
-use std::str::FromStr;
 
 use crate::{
     daemon,
@@ -114,13 +112,7 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                 SettingsModified::ChangeShortcut(v) => {
                     let v = v
                         .split('+')
-                        .map(|k| {
-                            let r = Keycode::from_str(k);
-                            if r.is_ok() {
-                                return k.to_string();
-                            }
-                            String::new()
-                        })
+                        .map(|k| k.to_string())
                         .collect::<Vec<String>>();
                     app.settings.set_shortcut(v)
                 }

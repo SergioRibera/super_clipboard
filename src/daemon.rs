@@ -11,7 +11,8 @@ use enigo::{Enigo, MouseControllable};
 use iced::{subscription, Subscription};
 
 use crate::{
-    gui::LISTEN_KEYBOARD, settings::ClipboardItem, APP_HEIGHT, APP_MOUSE_MARGIN, APP_WIDTH,
+    gui::LISTEN_KEYBOARD, keys::{keycode_to_str, keycode_from_str}, settings::ClipboardItem, APP_HEIGHT,
+    APP_MOUSE_MARGIN, APP_WIDTH,
 };
 
 fn track_mouse(sender: Sender<Message>) {
@@ -63,7 +64,7 @@ fn listen_keyboard(shortcuts: Vec<Keycode>, sender: Sender<Message>) {
                 }
                 sender
                     .send(Message::ChangeKeys(
-                        keys.iter().map(|k| k.to_string()).collect(),
+                        keys.iter().map(|k| keycode_to_str(k)).collect(),
                     ))
                     .unwrap();
             }
@@ -103,7 +104,7 @@ pub fn start_daemon(shortcuts: &[String]) -> Subscription<Event> {
 
     let shortcuts = shortcuts
         .iter()
-        .flat_map(|k| Keycode::from_str(k.as_str()))
+        .map(|k| keycode_from_str(k))
         .collect::<Vec<Keycode>>();
 
     subscription::unfold(

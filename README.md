@@ -28,7 +28,7 @@ super_clipboard &
 ```
 
 ### TODO
-- [ ] Fix keyboard shortcut initial parsing
+- [x] Fix keyboard shortcut initial parsing
 - [ ] Autopaste when select from history
 - [x] Fix auto hide and show window
 
