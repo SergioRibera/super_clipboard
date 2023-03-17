@@ -58,7 +58,7 @@ fn listen_keyboard(keys: Vec<Keycode>, shortcuts: Vec<Keycode>, sender: SyncSend
         trace!("Sending new keys presseds");
         sender
             .send(Message::ChangeKeys(
-                keys.iter().map(|k| keycode_to_str(k)).collect(),
+                keys.iter().map(keycode_to_str).collect(),
             ))
             .unwrap();
     }
