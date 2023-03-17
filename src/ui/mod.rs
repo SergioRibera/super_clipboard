@@ -154,9 +154,9 @@ impl Application for MainApp {
         };
 
         container(
-            mouse_listener(content), // .on_mouse_exit(MainMessage::DaemonEvent(
-                                     //     daemon::Event::Message(daemon::Message::ToggleVisibility(false)),
-                                     // )),
+            mouse_listener(content).on_mouse_exit(MainMessage::DaemonEvent(
+                daemon::Event::Message(daemon::Message::ToggleVisibility(false)),
+            )),
         )
         .width(Length::Fill)
         .height(Length::Fill)
