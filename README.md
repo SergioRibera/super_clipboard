@@ -29,6 +29,7 @@ super_clipboard &
 
 ### TODO
 - [x] Fix keyboard shortcut initial parsing
+- [x] Fix performance increase
 - [ ] Autopaste when select from history
 - [x] Fix auto hide and show window
 
