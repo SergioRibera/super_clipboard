@@ -27,6 +27,19 @@ bspwm example
 super_clipboard &
 ```
 
+To show Logs you need set `SUPER_CLIPBOARD_LOG` env variable, here some examples
+> **NOTE:** For more details see [docs](https://docs.rs/env_logger/latest/env_logger/#enabling-logging)
+```
+# Show only errors
+SUPER_CLIPBOARD_LOG=error super_clipboard
+# Dump to file
+SUPER_CLIPBOARD_LOG=info super_clipboard >> /tmp/super_clipboard_logs.txt
+# Show only super_clipboard crate logs
+SUPER_CLIPBOARD_LOG=off,super_clipboard=info super_clipboard
+# Show only super_clipboard::daemon crate logs
+SUPER_CLIPBOARD_LOG=off,super_clipboard::daemon=info super_clipboard
+```
+
 ### TODO
 - [x] Fix keyboard shortcut initial parsing
 - [x] Fix performance increase
