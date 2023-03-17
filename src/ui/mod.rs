@@ -72,7 +72,6 @@ impl Application for MainApp {
     type Flags = AppSettings;
 
     fn new(settings: Self::Flags) -> (Self, Command<Self::Message>) {
-        let manifest_dir = env!("CARGO_MANIFEST_DIR");
         trace!("Creating Iced Application");
         (
             Self {
@@ -81,14 +80,24 @@ impl Application for MainApp {
                 follow: false,
                 view: RouterView::Home,
                 clipboard_ctx: Clipboard::new().unwrap(),
-                back_icon: svg::Handle::from_path(format!("{manifest_dir}/assets/back.svg")),
-                tip_icon: svg::Handle::from_path(format!("{manifest_dir}/assets/hint.svg")),
-                dark_icon: svg::Handle::from_path(format!("{manifest_dir}/assets/night-mode.svg")),
-                light_icon: svg::Handle::from_path(format!("{manifest_dir}/assets/light-mode.svg")),
-                trash_icon: svg::Handle::from_path(format!("{manifest_dir}/assets/trash.svg")),
-                settings_icon: svg::Handle::from_path(format!(
-                    "{manifest_dir}/assets/settings.svg"
-                )),
+                back_icon: svg::Handle::from_memory(
+                    include_bytes!("../../assets/back.svg").to_vec(),
+                ),
+                tip_icon: svg::Handle::from_memory(
+                    include_bytes!("../../assets/hint.svg").to_vec(),
+                ),
+                dark_icon: svg::Handle::from_memory(
+                    include_bytes!("../../assets/night-mode.svg").to_vec(),
+                ),
+                light_icon: svg::Handle::from_memory(
+                    include_bytes!("../../assets/light-mode.svg").to_vec(),
+                ),
+                trash_icon: svg::Handle::from_memory(
+                    include_bytes!("../../assets/trash.svg").to_vec(),
+                ),
+                settings_icon: svg::Handle::from_memory(
+                    include_bytes!("../../assets/settings.svg").to_vec(),
+                ),
             },
             Command::none(),
         )
