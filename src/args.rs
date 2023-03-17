@@ -29,7 +29,9 @@ pub struct AppArgs {
 
 pub fn parse_cli() -> AppSettings {
     let args = AppArgs::parse();
+    log::trace!("CLI Arguments parsed");
     let mut settings = load_settings();
+    log::info!("Loaded saved settings");
 
     if let Some(v) = args.max_capacity {
         settings.set_max_capacity(v);

@@ -110,10 +110,7 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                 SettingsModified::DateFormat(v) => app.settings.set_format_date(v),
                 SettingsModified::ChangeTransparency(v) => app.settings.set_transparent(v),
                 SettingsModified::ChangeShortcut(v) => {
-                    let v = v
-                        .split('+')
-                        .map(|k| k.to_string())
-                        .collect::<Vec<String>>();
+                    let v = v.split('+').map(|k| k.to_string()).collect::<Vec<String>>();
                     app.settings.set_shortcut(v)
                 }
             }

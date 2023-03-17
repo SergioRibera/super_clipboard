@@ -101,7 +101,7 @@ pub fn keycode_from_str(s: &str) -> Keycode {
         _ => {
             println!("Error Parsing String: {s}");
             Keycode::Meta
-        },
+        }
     }
 }
 
