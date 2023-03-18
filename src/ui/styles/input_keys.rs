@@ -48,7 +48,7 @@ impl text_input::StyleSheet for TextInputStyle {
         let palette = style.extended_palette();
 
         if self.0 {
-            palette.primary.base.text
+            palette.primary.base.color
         } else {
             palette.background.base.text
         }
