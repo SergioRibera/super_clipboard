@@ -141,6 +141,11 @@ impl AppSettings {
     }
 
     pub fn push(&mut self, item: ClipboardItem) {
+        // check for repeated entries and delete the older entry to prevent duplicates. 
+        let repeated_index = self.clipboard.iter().position(|previous_item| item.to_string() == previous_item.to_string());
+        if let Some(repeated_index) = repeated_index{
+            self.clipboard.remove(repeated_index);
+        }
         if self.clipboard.len() + 1 >= self.max_capacity as usize {
             self.clipboard.remove(0);
         }
