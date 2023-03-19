@@ -74,7 +74,7 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                     if v {
                         window::change_mode(window::Mode::Windowed)
                     } else {
-                        LISTEN_KEYBOARD.store(true, std::sync::atomic::Ordering::SeqCst);
+                        LISTEN_KEYBOARD.store(false, std::sync::atomic::Ordering::SeqCst);
                         window::change_mode(window::Mode::Hidden)
                     }
                 }
