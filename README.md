@@ -10,6 +10,8 @@ https://user-images.githubusercontent.com/56278796/225697681-418086a9-a02e-4087-
 ### Inspiration
 In search of a clipboard manager that is comfortable and I can have instantly next to the mouse to speed up my work and at the same time I can include in my workflow and my environment based on WM's, SuperClipboard was born.
 
+> **Warning:** It can run in gnome, but details like mouse tracking, transparency and window colors don't work quite right, if you would like to work on gnome support you can leave your feedback in this [issue](https://github.com/SergioRibera/super_clipboard/issues/2) to take it into account.
+
 ### Features
 - Clean UI
 - Text and Image clipboard
@@ -30,7 +32,7 @@ super_clipboard &
 
 To show Logs you need set `SUPER_CLIPBOARD_LOG` env variable, here some examples
 > **NOTE:** For more details see [docs](https://docs.rs/env_logger/latest/env_logger/#enabling-logging)
-```
+```bash
 # Show only errors
 SUPER_CLIPBOARD_LOG=error super_clipboard
 # Dump to file
