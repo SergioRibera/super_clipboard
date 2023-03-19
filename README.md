@@ -44,11 +44,12 @@ SUPER_CLIPBOARD_LOG=off,super_clipboard::daemon=info super_clipboard
 ```
 
 ### TODO
+- [ ] Autopaste when select from history
+- [ ] Image from path copied
 - [x] Fix keyboard shortcut initial parsing
 - [x] Fix performance increase
 - [x] Position based on the display of each screen
 - [x] Fix Unnautorize remap shortcut
 - [x] Fix auto hide and show window
-- [ ] Autopaste when select from history
 
 Icons by <a target="_blank" href="https://icons8.com">Icons8</a>
