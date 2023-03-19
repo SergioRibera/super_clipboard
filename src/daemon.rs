@@ -85,7 +85,12 @@ fn listen_keyboard(keys: Vec<Keycode>, shortcuts: Vec<Keycode>, sender: SyncSend
     }
 }
 
-fn check_clipboard(ctx: &mut Clipboard, last_str: &mut String, sender: SyncSender<Message>) {
+fn check_clipboard(
+    ctx: &mut Clipboard,
+    last_str: &mut String,
+    last_image: &mut (usize, usize, usize, [u8; 2]),
+    sender: SyncSender<Message>,
+) {
     if let Ok(content) = ctx.get_text() {
         if *last_str != content && !content.is_empty() {
             info!("Content Received from clipboard: {content}");
@@ -96,7 +101,19 @@ fn check_clipboard(ctx: &mut Clipboard, last_str: &mut String, sender: SyncSende
         }
     }
     if let Ok(image) = ctx.get_image() {
-        if !image.bytes.is_empty() {
+        let (l_w, l_h, l_l, bs) = last_image;
+        if !image.bytes.is_empty()
+            && image.width != *l_w
+            && image.height != *l_h
+            && image.bytes.len() != *l_l
+            && image.bytes.first().unwrap() != &bs[0]
+            && image.bytes.last().unwrap() != &bs[1]
+        {
+            last_image.0 = image.width;
+            last_image.1 = image.height;
+            last_image.2 = image.bytes.len();
+            last_image.3[0] = *image.bytes.first().unwrap();
+            last_image.3[1] = *image.bytes.last().unwrap();
             info!("Image Received from clipboard: {image:?}");
             sender
                 .send(Message::AddClipboard(ClipboardItem::from(image)))
@@ -128,6 +145,7 @@ pub fn start_daemon(shortcuts: &[String]) -> Subscription<Event> {
                     thread::spawn(move || {
                         let mut ctx = Clipboard::new().unwrap();
                         let mut last_str = ctx.get_text().unwrap_or_default();
+                        let mut last_image = (0usize, 0usize, 0usize, [0u8; 2]);
                         trace!("Clipboard context created");
 
                         let device_state = DeviceState::new();
@@ -145,7 +163,12 @@ pub fn start_daemon(shortcuts: &[String]) -> Subscription<Event> {
                                 shortcuts.clone(),
                                 sender.clone(),
                             );
-                            check_clipboard(&mut ctx, &mut last_str, sender.clone());
+                            check_clipboard(
+                                &mut ctx,
+                                &mut last_str,
+                                &mut last_image,
+                                sender.clone(),
+                            );
                             thread::sleep(Duration::from_millis(200));
                         }
                     });
