@@ -27,7 +27,7 @@ pub fn render_item(
             }
             col.push(text(value.replace('\t', " ")).size(18.)).into()
         }
-        ClipboardItem::Image(date, _w, _h, b) => {
+        ClipboardItem::Image(date, w, h, b) => {
             let mut col = Column::new().spacing(5.);
             if !format_date.is_empty() {
                 col = col.push(
@@ -39,7 +39,8 @@ pub fn render_item(
             }
             let bytes = b.clone();
             col.push(
-                image(image::Handle::from_memory(bytes))
+                image(image::Handle::from_pixels(*w as u32, *h as u32, bytes))
+                    .content_fit(iced::ContentFit::Contain)
                     .width(Length::Fixed(40.))
                     .height(Length::Fixed(40.)),
             )
