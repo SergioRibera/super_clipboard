@@ -2,6 +2,7 @@
 use arboard::ImageData;
 use chrono::prelude::*;
 use clap::ValueEnum;
+use dark_light;
 use preferences::Preferences;
 use serde::{Deserialize, Serialize};
 
@@ -44,12 +45,22 @@ pub fn save_settings(value: &AppSettings) {
 
 impl Default for AppSettings {
     fn default() -> Self {
+        let mode = dark_light::detect();
+        let theme = match mode {
+            // Dark mode
+            dark_light::Mode::Dark => ThemeType::Dark,
+            // Light mode
+            dark_light::Mode::Light => ThemeType::Light,
+            // Unspecified
+            dark_light::Mode::Default => ThemeType::Dark,
+        };
+
         Self {
             max_capacity: 10000,
             tick_save: 2000,
-            theme: ThemeType::Dark,
-            store: true,
+            theme,
             transparent: true,
+            store: true,
             is_changed: false,
             format_date: "%d %b %Y - %H:%M:%S".to_string(),
             activation_keys: vec!["LShift".to_string(), "V".to_string(), "Meta".to_string()],
@@ -141,6 +152,14 @@ impl AppSettings {
     }
 
     pub fn push(&mut self, item: ClipboardItem) {
+        // check for repeated entries and delete the older entry to prevent duplicates.
+        let repeated_index = self
+            .clipboard
+            .iter()
+            .position(|previous_item| item.to_string() == previous_item.to_string());
+        if let Some(repeated_index) = repeated_index {
+            self.clipboard.remove(repeated_index);
+        }
         if self.clipboard.len() + 1 >= self.max_capacity as usize {
             self.clipboard.remove(0);
         }
