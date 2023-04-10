@@ -275,7 +275,7 @@ pub mod settings {
             .push(text_input("", settings.format_date(), |value| {
                 MainMessage::ChangeSettings(SettingsModified::DateFormat(value))
             }))
-            .spacing(10.)
+            .spacing(12.)
             .width(Length::Shrink)
             .height(Length::Shrink)
     }
