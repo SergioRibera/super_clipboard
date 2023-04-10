@@ -60,6 +60,7 @@ pub enum SettingsModified {
     MaxCapacity(String),
     TickToSave(String),
     StoreClipboard(bool),
+    StorePreserve(bool),
     ChangeTransparency(bool),
     DateFormat(String),
     ChangeShortcut(String),
@@ -110,7 +111,8 @@ impl Application for MainApp {
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         trace!("Subscription Batch");
         Subscription::batch(vec![
-            daemon::start_daemon(self.settings.shortcut()).map(MainMessage::DaemonEvent),
+            daemon::start_daemon(self.settings.shortcut(), self.settings.preserve())
+                .map(MainMessage::DaemonEvent),
             iced::time::every(Duration::from_millis(self.settings.tick_save()))
                 .map(MainMessage::CheckSettings),
         ])

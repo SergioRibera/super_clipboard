@@ -23,6 +23,8 @@ pub struct AppArgs {
     pub(self) format_date: Option<String>,
     #[clap(long, short, help = "Allow save history clipboard session")]
     pub(self) store: Option<bool>,
+    #[clap(long, short, help = "Allow preserve the externally removed clipboard. Ideally used by password managers")]
+    pub(self) preserve: Option<bool>,
     #[clap(long, short, help = "Set application transparent")]
     pub(self) transparent: Option<bool>,
 }
@@ -52,6 +54,12 @@ pub fn parse_cli() -> AppSettings {
     if let Some(v) = args.store {
         if v != settings.store() {
             settings.set_store(v);
+        }
+    }
+
+    if let Some(v) = args.preserve {
+        if v == settings.preserve() {
+            settings.set_preserve(v);
         }
     }
 
