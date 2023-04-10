@@ -13,6 +13,7 @@ pub struct AppSettings {
     tick_save: u64,
     theme: ThemeType,
     store: bool,
+    preserve: bool,
     transparent: bool,
     format_date: String,
     activation_keys: Vec<String>,
@@ -60,6 +61,7 @@ impl Default for AppSettings {
             tick_save: 2000,
             transparent: true,
             store: true,
+            preserve: false,
             is_changed: false,
             format_date: "%d %b %Y - %H:%M:%S".to_string(),
             activation_keys: vec!["LShift".to_string(), "V".to_string(), "Meta".to_string()],
@@ -88,6 +90,12 @@ impl AppSettings {
         self.store = store;
         self.is_changed = true;
     }
+
+    pub fn set_preserve(&mut self, preserve: bool) {
+        self.preserve = preserve;
+        self.is_changed = true;
+    }
+
     pub fn set_transparent(&mut self, transparent: bool) {
         self.transparent = transparent;
         self.is_changed = true;
@@ -140,6 +148,10 @@ impl AppSettings {
 
     pub fn store(&self) -> bool {
         self.store
+    }
+
+    pub fn preserve(&self) -> bool {
+        self.preserve
     }
 
     pub fn shortcut(&self) -> &[String] {

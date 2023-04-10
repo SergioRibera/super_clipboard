@@ -89,15 +89,21 @@ fn check_clipboard(
     ctx: &mut Clipboard,
     last_str: &mut String,
     last_image: &mut (usize, usize, usize, [u8; 2]),
+    preserve: bool,
     sender: SyncSender<Message>,
 ) {
     if let Ok(content) = ctx.get_text() {
-        if *last_str != content && !content.is_empty() {
+        let is_empty = content.is_empty() || content == " ";
+        if *last_str != content && !is_empty {
             info!("Content Received from clipboard: {content}");
             *last_str = content.clone();
             sender
                 .send(Message::AddClipboard(ClipboardItem::from(content)))
                 .unwrap();
+        } else if *last_str != content && is_empty && !preserve {
+            info!("Removing last item from clipboard");
+            *last_str = content.clone();
+            sender.send(Message::RemoveLastClipboard).unwrap();
         }
     }
     if let Ok(image) = ctx.get_image() {
@@ -122,7 +128,7 @@ fn check_clipboard(
     }
 }
 
-pub fn start_daemon(shortcuts: &[String]) -> Subscription<Event> {
+pub fn start_daemon(shortcuts: &[String], preserve: bool) -> Subscription<Event> {
     struct Daemon;
     trace!("Starting Instantiate daemon");
 
@@ -135,10 +141,10 @@ pub fn start_daemon(shortcuts: &[String]) -> Subscription<Event> {
 
     subscription::unfold(
         std::any::TypeId::of::<Daemon>(),
-        State::Disconnected(shortcuts),
+        State::Disconnected(shortcuts, preserve),
         |state| async {
             match state {
-                State::Disconnected(shortcuts) => {
+                State::Disconnected(shortcuts, preserve) => {
                     let (sender, rec) = std::sync::mpsc::sync_channel::<Message>(20);
                     trace!("Creating mpsc channel");
 
@@ -167,6 +173,7 @@ pub fn start_daemon(shortcuts: &[String]) -> Subscription<Event> {
                                 &mut ctx,
                                 &mut last_str,
                                 &mut last_image,
+                                preserve,
                                 sender.clone(),
                             );
                             thread::sleep(Duration::from_millis(200));
@@ -186,7 +193,7 @@ pub fn start_daemon(shortcuts: &[String]) -> Subscription<Event> {
 
 #[derive(Debug)]
 enum State {
-    Disconnected(Vec<Keycode>),
+    Disconnected(Vec<Keycode>, bool),
     Connected(mpsc::Receiver<Message>),
 }
 
@@ -198,6 +205,7 @@ pub enum Event {
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    RemoveLastClipboard,
     ToggleVisibility(bool),
     ChangePosition((i32, i32)),
     AddClipboard(ClipboardItem),

@@ -96,6 +96,10 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                     }
                     Command::none()
                 }
+                daemon::Message::RemoveLastClipboard => {
+                    app.settings.remove(app.settings.clipboard().len() - 1);
+                    Command::none()
+                },
             },
             _ => Command::none(),
         },
@@ -112,6 +116,7 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                     }
                 }
                 SettingsModified::StoreClipboard(v) => app.settings.set_store(v),
+                SettingsModified::StorePreserve(v) => app.settings.set_preserve(v),
                 SettingsModified::DateFormat(v) => app.settings.set_format_date(v),
                 SettingsModified::ChangeTransparency(v) => app.settings.set_transparent(v),
                 SettingsModified::ChangeShortcut(v) => {

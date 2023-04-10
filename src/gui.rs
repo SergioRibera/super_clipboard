@@ -194,6 +194,7 @@ pub mod settings {
                     "",
                 ),
                 ("Store Clipboard", "Save clipboard when close", ""),
+                ("Preserve", "Preserve externally removed clipboard items. Usually removed by password managers", ""),
                 ("Max Capacity", "Set max capacity for clipboard history", ""),
                 (
                     "Tick to Save",
@@ -253,6 +254,9 @@ pub mod settings {
             }))
             .push(checkbox("", settings.store(), |value| {
                 MainMessage::ChangeSettings(SettingsModified::StoreClipboard(value))
+            }))
+            .push(checkbox("", settings.preserve(), |value| {
+                MainMessage::ChangeSettings(SettingsModified::StorePreserve(value))
             }))
             .push(text_input(
                 "",
