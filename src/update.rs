@@ -1,10 +1,12 @@
+use std::path::PathBuf;
+
 use iced::{window, Command};
 use log::trace;
 
 use crate::{
     daemon,
     gui::LISTEN_KEYBOARD,
-    settings::{save_settings, ClipboardItem},
+    settings::{image_path, save_settings, ClipboardItem},
     ui::{MainApp, MainMessage, SettingsModified},
 };
 
@@ -54,7 +56,8 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
         MainMessage::SetClipboard(item) => {
             match item {
                 ClipboardItem::Text(_, c) => app.clipboard_ctx.set_text(c).unwrap(),
-                ClipboardItem::Image(_, width, height, bytes) => {
+                ClipboardItem::Image(_, width, height, id) => {
+                    let bytes = std::fs::read(PathBuf::from(image_path(id))).unwrap_or_default();
                     app.clipboard_ctx
                         .set_image(arboard::ImageData {
                             width,
@@ -99,7 +102,7 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                 daemon::Message::RemoveLastClipboard => {
                     app.settings.remove(app.settings.clipboard().len() - 1);
                     Command::none()
-                },
+                }
             },
             _ => Command::none(),
         },

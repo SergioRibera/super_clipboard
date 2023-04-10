@@ -1,7 +1,10 @@
 #![allow(unused)]
+use std::path::PathBuf;
+
 use arboard::ImageData;
 use chrono::prelude::*;
 use clap::ValueEnum;
+use log::info;
 use preferences::Preferences;
 use serde::{Deserialize, Serialize};
 
@@ -31,7 +34,7 @@ pub enum ThemeType {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum ClipboardItem {
     Text(DateTime<Utc>, String),
-    Image(DateTime<Utc>, usize, usize, Vec<u8>),
+    Image(DateTime<Utc>, usize, usize, uuid::Uuid),
 }
 
 #[must_use]
@@ -41,6 +44,20 @@ pub fn load_settings() -> AppSettings {
 
 pub fn save_settings(value: &AppSettings) {
     value.save(&APPINFO, "settings").unwrap()
+}
+
+pub fn image_path(id: uuid::Uuid) -> String {
+    let binding = preferences::prefs_base_dir()
+        .unwrap()
+        .join(APPINFO.name)
+        .join("images");
+    if !binding.exists() {
+        std::fs::create_dir_all(&binding);
+    }
+    let binding = binding.join(&format!("{id:?}.png"));
+    info!("Saving image on \"{binding:?}\" path");
+    let path = binding.to_str().unwrap();
+    path.to_string()
 }
 
 impl Default for AppSettings {
@@ -181,7 +198,10 @@ impl AppSettings {
     }
 
     pub fn remove(&mut self, i: usize) {
-        self.clipboard.remove(i);
+        match self.clipboard.remove(i) {
+            ClipboardItem::Image(_, _, _, id) => std::fs::remove_file(image_path(id)).unwrap(),
+            _ => {}
+        }
         if self.store {
             self.is_changed = true;
         }
@@ -220,13 +240,23 @@ impl From<String> for ClipboardItem {
     }
 }
 
-impl From<ImageData<'_>> for ClipboardItem {
-    fn from(value: ImageData) -> Self {
+impl TryFrom<ImageData<'_>> for ClipboardItem {
+    type Error = String;
+
+    fn try_from(value: ImageData) -> Result<Self, Self::Error> {
         let ImageData {
             width,
             height,
             bytes,
         } = value;
-        Self::Image(Utc::now(), width, height, bytes.to_vec())
+        let id = uuid::Uuid::from_slice(&bytes[0..16]).unwrap();
+        let img_path = image_path(id.clone());
+        match image::RgbImage::from_raw(width as u32, height as u32, bytes.to_vec()) {
+            Some(img) => {
+                img.save(img_path).unwrap();
+                return Ok(Self::Image(Utc::now(), width, height, id));
+            }
+            None => Err(format!("Cannot load image from_raw")),
+        }
     }
 }

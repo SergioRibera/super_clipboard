@@ -140,8 +140,7 @@ impl Application for MainApp {
                         self.settings.format_date(),
                         self.settings.clipboard(),
                     ))
-                    .vertical_scroll(Properties::default().width(5.).scroller_width(5.))
-                    .height(Length::Fill),
+                    .vertical_scroll(Properties::new().width(5.).scroller_width(5.)),
                 )
                 .spacing(10)
                 .padding(10)
