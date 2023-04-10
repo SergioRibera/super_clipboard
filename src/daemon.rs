@@ -8,7 +8,7 @@ use arboard::Clipboard;
 use device_query::{DeviceQuery, DeviceState, Keycode};
 use display_info::DisplayInfo;
 use iced::{subscription, Subscription};
-use log::{debug, info, trace};
+use log::{debug, error, info, trace};
 
 use crate::{
     gui::LISTEN_KEYBOARD,
@@ -121,9 +121,10 @@ fn check_clipboard(
             last_image.3[0] = *image.bytes.first().unwrap();
             last_image.3[1] = *image.bytes.last().unwrap();
             info!("Image Received from clipboard: {image:?}");
-            sender
-                .send(Message::AddClipboard(ClipboardItem::from(image)))
-                .unwrap();
+            match ClipboardItem::try_from(image) {
+                Ok(img) => sender.send(Message::AddClipboard(img)).unwrap(),
+                Err(e) => error!("{e}"),
+            };
         }
     }
 }
