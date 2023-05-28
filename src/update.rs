@@ -99,7 +99,7 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                 daemon::Message::RemoveLastClipboard => {
                     app.settings.remove(app.settings.clipboard().len() - 1);
                     Command::none()
-                },
+                }
             },
             _ => Command::none(),
         },
