@@ -23,7 +23,11 @@ pub struct AppArgs {
     pub(self) format_date: Option<String>,
     #[clap(long, short, help = "Allow save history clipboard session")]
     pub(self) store: Option<bool>,
-    #[clap(long, short, help = "Allow preserve the externally removed clipboard. Ideally used by password managers")]
+    #[clap(
+        long,
+        short,
+        help = "Allow preserve the externally removed clipboard. Ideally used by password managers"
+    )]
     pub(self) preserve: Option<bool>,
     #[clap(long, short, help = "Set application transparent")]
     pub(self) transparent: Option<bool>,
