@@ -39,10 +39,9 @@ pub enum ClipboardItem {
 
 #[must_use]
 pub fn load_settings() -> AppSettings {
-    let Ok(path) = data_root(AppDataType::UserConfig) else {
+    let Ok(mut path) = data_root(AppDataType::UserConfig) else {
         return AppSettings::default();
     };
-    let mut path = path.clone();
     path.push("super_clipboard");
     path.push("settings");
     path.set_extension("data");
@@ -57,12 +56,11 @@ pub fn load_settings() -> AppSettings {
     if let Some((settings, _)) = unsafe { decode::<AppSettings>(&mut bytes) } {
         return settings.clone();
     }
-    return AppSettings::default();
+    AppSettings::default()
 }
 
 pub fn save_settings(value: &AppSettings) {
-    if let Ok(path) = data_root(AppDataType::UserConfig) {
-        let mut path = path.clone();
+    if let Ok(mut path) = data_root(AppDataType::UserConfig) {
         path.push("super_clipboard");
         path.push("settings");
         path.set_extension("data");
