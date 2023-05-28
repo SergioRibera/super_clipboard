@@ -102,7 +102,7 @@ fn check_clipboard(
                 .unwrap();
         } else if *last_str != content && is_empty && !preserve {
             info!("Removing last item from clipboard");
-            *last_str = content.clone();
+            *last_str = content;
             sender.send(Message::RemoveLastClipboard).unwrap();
         }
     }
