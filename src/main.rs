@@ -1,5 +1,8 @@
 #![windows_subsystem = "windows"]
 
+#[macro_use]
+extern crate abomonation_derive;
+
 mod args;
 mod daemon;
 mod gui;
@@ -10,16 +13,10 @@ mod update;
 
 use args::parse_cli;
 use iced::{Application, Settings};
-use preferences::AppInfo;
 use ui::MainApp;
 
 #[global_allocator]
 static A: rlsf::SmallGlobalTlsf = rlsf::SmallGlobalTlsf::new();
-
-pub const APPINFO: AppInfo = AppInfo {
-    name: env!("CARGO_PKG_NAME"),
-    author: env!("CARGO_PKG_AUTHORS"),
-};
 
 pub const APP_WIDTH: i32 = 350;
 pub const APP_HEIGHT: i32 = 450;

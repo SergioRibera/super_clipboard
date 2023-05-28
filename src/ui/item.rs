@@ -14,12 +14,13 @@ pub fn render_item(
     i: usize,
     item: &ClipboardItem,
 ) -> Element<'static, MainMessage> {
+    let fmt_date = item.format(format_date);
     let content: Element<MainMessage> = match item {
-        ClipboardItem::Text(date, value) => {
+        ClipboardItem::Text(_, value) => {
             let mut col = Column::new().spacing(5.);
             if !format_date.is_empty() {
                 col = col.push(
-                    text(date.format(format_date))
+                    text(fmt_date)
                         .size(10.)
                         .width(Length::Fill)
                         .horizontal_alignment(Horizontal::Right),
@@ -27,11 +28,11 @@ pub fn render_item(
             }
             col.push(text(value.replace('\t', " ")).size(18.)).into()
         }
-        ClipboardItem::Image(date, w, h, b) => {
+        ClipboardItem::Image(_, w, h, b) => {
             let mut col = Column::new().spacing(5.);
             if !format_date.is_empty() {
                 col = col.push(
-                    text(date.format(format_date))
+                    text(fmt_date)
                         .size(10.)
                         .width(Length::Fill)
                         .horizontal_alignment(Horizontal::Right),

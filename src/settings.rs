@@ -1,13 +1,16 @@
 #![allow(unused)]
+use std::{
+    fs::File,
+    io::{BufReader, Read},
+};
+
+use abomonation::{decode, encode};
+use app_dirs2::{data_root, AppDataType};
 use arboard::ImageData;
 use chrono::prelude::*;
 use clap::ValueEnum;
-use preferences::Preferences;
-use serde::{Deserialize, Serialize};
 
-use crate::APPINFO;
-
-#[derive(Clone, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Abomonation, Clone, Eq, PartialEq)]
 pub struct AppSettings {
     max_capacity: u64,
     tick_save: u64,
@@ -18,29 +21,59 @@ pub struct AppSettings {
     format_date: String,
     activation_keys: Vec<String>,
     clipboard: Vec<ClipboardItem>,
-    #[serde(skip)]
+    #[unsafe_abomonate_ignore]
     pub is_changed: bool,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, ValueEnum)]
+#[derive(Abomonation, Clone, Debug, Eq, PartialEq, ValueEnum)]
 pub enum ThemeType {
     Light,
     Dark,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Abomonation, Clone, Debug, Eq, PartialEq)]
 pub enum ClipboardItem {
-    Text(DateTime<Utc>, String),
-    Image(DateTime<Utc>, usize, usize, Vec<u8>),
+    Text(String, String),
+    Image(String, usize, usize, Vec<u8>),
 }
 
 #[must_use]
 pub fn load_settings() -> AppSettings {
-    AppSettings::load(&APPINFO, "settings").unwrap_or_default()
+    let Ok(path) = data_root(AppDataType::UserConfig) else {
+        return AppSettings::default();
+    };
+    let mut path = path.clone();
+    path.push("super_clipboard");
+    path.push("settings");
+    path.set_extension("data");
+
+    println!("Path: {path:?}");
+    let Ok(mut file) = File::open(path) else {
+        return AppSettings::default();
+    };
+    let mut bytes = Vec::new();
+    file.read_to_end(&mut bytes).unwrap();
+
+    if let Some((settings, _)) = unsafe { decode::<AppSettings>(&mut bytes) } {
+        return settings.clone();
+    }
+    return AppSettings::default();
 }
 
 pub fn save_settings(value: &AppSettings) {
-    value.save(&APPINFO, "settings").unwrap()
+    if let Ok(path) = data_root(AppDataType::UserConfig) {
+        let mut path = path.clone();
+        path.push("super_clipboard");
+        path.push("settings");
+        path.set_extension("data");
+
+        println!("Path: {path:?}");
+        if let Ok(mut file) = File::create(path) {
+            unsafe {
+                encode(value, &mut file);
+            }
+        }
+    }
 }
 
 impl Default for AppSettings {
@@ -204,6 +237,22 @@ impl ThemeType {
     }
 }
 
+impl ClipboardItem {
+    pub fn format(&self, fmt: &str) -> String {
+        match self {
+            ClipboardItem::Text(date, _) => DateTime::parse_from_rfc3339(date)
+                .unwrap()
+                .format(fmt)
+                .to_string(),
+            // @TODO:Convert to base64
+            ClipboardItem::Image(date, _, _, _) => DateTime::parse_from_rfc3339(date)
+                .unwrap()
+                .format(fmt)
+                .to_string(),
+        }
+    }
+}
+
 impl ToString for ClipboardItem {
     fn to_string(&self) -> String {
         match self {
@@ -216,7 +265,7 @@ impl ToString for ClipboardItem {
 
 impl From<String> for ClipboardItem {
     fn from(value: String) -> Self {
-        Self::Text(Utc::now(), value)
+        Self::Text(Utc::now().to_rfc3339(), value)
     }
 }
 
@@ -227,6 +276,6 @@ impl From<ImageData<'_>> for ClipboardItem {
             height,
             bytes,
         } = value;
-        Self::Image(Utc::now(), width, height, bytes.to_vec())
+        Self::Image(Utc::now().to_rfc3339(), width, height, bytes.to_vec())
     }
 }
