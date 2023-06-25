@@ -21,8 +21,18 @@ pub struct AppSettings {
     format_date: String,
     activation_keys: String,
     clipboard: Vec<ClipboardItem>,
+    password_generation: PasswordGenSettings,
     #[unsafe_abomonate_ignore]
     pub is_changed: bool,
+}
+
+#[derive(Abomonation, Clone, Eq, PartialEq)]
+pub struct PasswordGenSettings {
+    pub len: usize,
+    pub special: bool,
+    pub upper: bool,
+    pub lower: bool,
+    pub number: bool,
 }
 
 #[derive(Abomonation, Clone, Debug, Eq, PartialEq, ValueEnum)]
@@ -94,6 +104,7 @@ impl Default for AppSettings {
             store: true,
             preserve: false,
             is_changed: false,
+            password_generation: PasswordGenSettings::default(),
             format_date: "%d %b %Y - %H:%M:%S".to_string(),
             activation_keys: "super+shift+v".to_string(),
             clipboard: Vec::new(),
@@ -227,6 +238,21 @@ impl AppSettings {
             self.is_changed = true;
         }
     }
+
+    pub fn password_generation(&self) -> &PasswordGenSettings {
+        &self.password_generation
+    }
+
+    pub fn password_generation_mut(&mut self) -> &mut PasswordGenSettings {
+        if self.store {
+            self.is_changed = true;
+        }
+        &mut self.password_generation
+    }
+
+    pub fn set_password_generation(&mut self, password_generation: PasswordGenSettings) {
+        self.password_generation = password_generation;
+    }
 }
 
 impl ThemeType {
@@ -234,6 +260,18 @@ impl ThemeType {
         match self {
             ThemeType::Light => "Dark".to_string(),
             ThemeType::Dark => "Light".to_string(),
+        }
+    }
+}
+
+impl Default for PasswordGenSettings {
+    fn default() -> Self {
+        Self {
+            len: 12,
+            special: true,
+            upper: true,
+            lower: true,
+            number: true,
         }
     }
 }
