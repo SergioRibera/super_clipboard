@@ -16,6 +16,7 @@ use iced_native::subscription::events_with;
 use log::{info, trace};
 
 use crate::gui::{home, settings};
+use crate::passwd::PasswordGenerator;
 use crate::settings::ThemeType;
 use crate::settings::{AppSettings, ClipboardItem};
 use crate::update::handle_update;
@@ -30,6 +31,7 @@ pub struct MainApp {
     pub view: RouterView,
     pub visible: bool,
     pub follow: bool,
+    pub password_generator: PasswordGenerator,
     pub hotkeys_manager: GlobalHotKeyManager,
     pub hotkey: HotKey,
     pub last_data: LastData,
@@ -37,6 +39,7 @@ pub struct MainApp {
     tip_icon: svg::Handle,
     dark_icon: svg::Handle,
     light_icon: svg::Handle,
+    gen_password_icon: svg::Handle,
     trash_icon: svg::Handle,
     settings_icon: svg::Handle,
 }
@@ -55,6 +58,7 @@ pub enum RouterView {
 
 #[derive(Debug, Clone)]
 pub enum MainMessage {
+    GeneratePassword,
     ClearClipboard,
     ThemeChangedToggle,
     HiddeApplication,
@@ -77,6 +81,12 @@ pub enum SettingsModified {
     ChangeTransparency(bool),
     DateFormat(String),
     ChangeShortcut(String),
+    // Password Genration
+    ChangePassLen(String),
+    ChangePassUseSpecial(bool),
+    ChangePassUseUpper(bool),
+    ChangePassUseLower(bool),
+    ChangePassUseNumber(bool),
 }
 
 impl Application for MainApp {
@@ -88,6 +98,7 @@ impl Application for MainApp {
     fn new(settings: Self::Flags) -> (Self, Command<Self::Message>) {
         trace!("Creating Iced Application");
 
+        let password_generator = PasswordGenerator::new(settings.password_generation());
         let hotkeys_manager = GlobalHotKeyManager::new().unwrap();
         let hotkey = HotKey::from_str(&settings.shortcut()).unwrap();
         hotkeys_manager.register(hotkey).unwrap();
@@ -98,10 +109,11 @@ impl Application for MainApp {
 
         (
             Self {
-                settings,
                 hotkey,
+                settings,
                 clipboard_ctx,
                 hotkeys_manager,
+                password_generator,
                 visible: true,
                 follow: false,
                 view: RouterView::Home,
@@ -122,6 +134,9 @@ impl Application for MainApp {
                 ),
                 light_icon: svg::Handle::from_memory(
                     include_bytes!("../../assets/light-mode.svg").to_vec(),
+                ),
+                gen_password_icon: svg::Handle::from_memory(
+                    include_bytes!("../../assets/password.svg").to_vec(),
                 ),
                 trash_icon: svg::Handle::from_memory(
                     include_bytes!("../../assets/trash.svg").to_vec(),
@@ -170,6 +185,7 @@ impl Application for MainApp {
                     self.settings.get_theme(),
                     self.dark_icon.clone(),
                     self.light_icon.clone(),
+                    self.gen_password_icon.clone(),
                     self.trash_icon.clone(),
                     self.settings_icon.clone(),
                 ))
@@ -191,11 +207,15 @@ impl Application for MainApp {
                 .push(settings::back_bar(self.back_icon.clone()))
                 .push(settings::tip_section(self.tip_icon.clone()))
                 .push(
-                    Row::new()
-                        .push(settings::list_options())
-                        .push(settings::list_elements(&self.settings))
-                        .spacing(10)
-                        .padding(10),
+                    scrollable(
+                        Row::new()
+                            .push(settings::list_options())
+                            .push(settings::list_elements(&self.settings))
+                            .spacing(10)
+                            .padding(10),
+                    )
+                    .height(Length::Fill)
+                    .vertical_scroll(Properties::new().width(5.).scroller_width(5.)),
                 )
                 .padding(Padding::from([10, 0]))
                 .width(Length::Fill)
