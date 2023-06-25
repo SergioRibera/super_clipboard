@@ -6,9 +6,9 @@ use iced::{window, Command};
 use log::trace;
 
 use crate::{
-    utils::{self, check_clipboard, track_mouse},
     settings::{save_settings, ClipboardItem},
     ui::{MainApp, MainMessage, SettingsModified},
+    utils::{self, check_clipboard, track_mouse},
 };
 
 pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMessage> {

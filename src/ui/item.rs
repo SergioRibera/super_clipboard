@@ -1,6 +1,6 @@
 use iced::{
     alignment::Horizontal,
-    widget::{container, image, text, Column, mouse_area},
+    widget::{container, image, mouse_area, text, Column},
     Element, Length,
 };
 
