@@ -1,0 +1,5 @@
+allow-branch = ["*", "!HEAD"]
+tag-message = "chore: Release new version"
+tag-name = "{{prefix}}v{{version}}"
+tag = true
+enable-all-features = false
