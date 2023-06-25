@@ -113,7 +113,6 @@ pub mod home {
             )
             .width(Length::Fill)
             .height(Length::Shrink)
-            .align_items(iced::Alignment::Fill)
     }
 
     pub fn tip_section<'a>(tip_icon: svg::Handle) -> impl Into<Element<'a, MainMessage>> {
@@ -142,18 +141,16 @@ pub mod home {
 
 pub mod settings {
     use iced::{
-        widget::{button, checkbox, column, row, svg, text, text_input, tooltip, Column},
+        widget::{
+            button, checkbox, column, mouse_area, row, svg, text, text_input, tooltip, Column,
+        },
         Element, Length,
     };
 
     use crate::{
         settings::AppSettings,
         ui::{
-            mouse_listener::mouse_listener,
-            styles::{
-                get_btn_transparent_style,
-                get_input_keys_none_style, get_tooltip_style,
-            },
+            styles::{get_btn_transparent_style, get_input_keys_none_style, get_tooltip_style},
             MainMessage, RouterView, SettingsModified,
         },
     };
@@ -208,7 +205,7 @@ pub mod settings {
             .iter()
             .map(|(name, tip, url)| {
                 tooltip(
-                    mouse_listener(
+                    mouse_area(
                         text(name)
                             .size(20.)
                             .height(28.)
@@ -245,23 +242,28 @@ pub mod settings {
             .push(checkbox("", settings.preserve(), |value| {
                 MainMessage::ChangeSettings(SettingsModified::StorePreserve(value))
             }))
-            .push(text_input(
-                "",
-                &settings.max_capacity().to_string(),
-                |value| MainMessage::ChangeSettings(SettingsModified::MaxCapacity(value)),
-            ))
-            .push(text_input("", &settings.tick_save().to_string(), |value| {
-                MainMessage::ChangeSettings(SettingsModified::TickToSave(value))
-            }))
             .push(
-                text_input("", &settings.shortcut(), |value| {
-                    MainMessage::ChangeSettings(SettingsModified::ChangeShortcut(value))
-                })
-                .style(get_input_keys_none_style()),
+                text_input("", &settings.max_capacity().to_string()).on_input(|value| {
+                    MainMessage::ChangeSettings(SettingsModified::MaxCapacity(value))
+                }),
             )
-            .push(text_input("", settings.format_date(), |value| {
-                MainMessage::ChangeSettings(SettingsModified::DateFormat(value))
-            }))
+            .push(
+                text_input("", &settings.tick_save().to_string()).on_input(|value| {
+                    MainMessage::ChangeSettings(SettingsModified::TickToSave(value))
+                }),
+            )
+            .push(
+                text_input("", &settings.shortcut())
+                    .on_input(|value| {
+                        MainMessage::ChangeSettings(SettingsModified::ChangeShortcut(value))
+                    })
+                    .style(get_input_keys_none_style()),
+            )
+            .push(
+                text_input("", settings.format_date()).on_input(|value| {
+                    MainMessage::ChangeSettings(SettingsModified::DateFormat(value))
+                }),
+            )
             .spacing(12.)
             .width(Length::Shrink)
             .height(Length::Shrink)
