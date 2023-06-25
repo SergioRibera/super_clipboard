@@ -40,6 +40,7 @@ pub mod home {
         theme: &ThemeType,
         dark_icon: svg::Handle,
         light_icon: svg::Handle,
+        passwd_icon: svg::Handle,
         trash_icon: svg::Handle,
         settings_icon: svg::Handle,
     ) -> impl Into<Element<'a, MainMessage>> {
@@ -58,6 +59,22 @@ pub mod home {
             )
             .push(
                 Row::new()
+                    .push(
+                        tooltip(
+                            button(
+                                svg(passwd_icon)
+                                    .width(Length::Fixed(18.))
+                                    .height(Length::Fixed(18.)),
+                            )
+                            .padding(0)
+                            .style(get_btn_transparent_style())
+                            .on_press(MainMessage::GeneratePassword),
+                            "Generate Password",
+                            tooltip::Position::Bottom,
+                        )
+                        .style(get_tooltip_style())
+                        .size(15.),
+                    )
                     .push(
                         tooltip(
                             button(
@@ -201,10 +218,17 @@ pub mod settings {
                     "Show date with this format (click for more information)",
                     "https://docs.rs/chrono/latest/chrono/format/strftime/index.html",
                 ),
+                ("Password Generation", "You will need to restart the application", ""),
+                ("Password Legth", "The number of characters in the generated password", ""),
+                ("Use Special", "Allows the use of special characters, such as '*' and '&'", ""),
+                ("Use Upper", "Allows the use of capital letters, such as 'A' and 'F'", ""),
+                ("Use Lower", "Allows the use of lowercase letters, such as 'a' and 'j'", ""),
+                ("Use Numbers", "Allows the use of numbers", ""),
             ]
             .iter()
-            .map(|(name, tip, url)| {
-                tooltip(
+            .flat_map(|(name, tip, url)| {
+                if tip.is_empty() { return None; }
+                Some(tooltip(
                     mouse_area(
                         text(name)
                             .size(20.)
@@ -218,7 +242,7 @@ pub mod settings {
                 )
                 .style(get_tooltip_style())
                 .size(15.)
-                .into()
+                .into())
             })
             .collect(),
         )
@@ -228,6 +252,7 @@ pub mod settings {
     }
 
     pub fn list_elements(settings: &AppSettings) -> impl Into<Element<'_, MainMessage>> {
+        let pwd_config = settings.password_generation();
         Column::new()
             .push(
                 button(text(settings.get_theme().toggle_str()).size(20.))
@@ -263,6 +288,45 @@ pub mod settings {
                 text_input("", settings.format_date()).on_input(|value| {
                     MainMessage::ChangeSettings(SettingsModified::DateFormat(value))
                 }),
+            )
+            // .push(Space::with_height(28.)) // Pasword Title
+            .push(
+                text("Settings")
+                    .size(20.)
+                    .height(28.)
+                    .horizontal_alignment(iced::alignment::Horizontal::Left)
+                    .vertical_alignment(iced::alignment::Vertical::Center),
+            )
+            .push(
+                text_input("", &pwd_config.len.to_string())
+                    .on_input(|value| {
+                        MainMessage::ChangeSettings(SettingsModified::ChangePassLen(value))
+                    })
+                    .style(get_input_keys_none_style()),
+            )
+            .push(
+                checkbox("", pwd_config.special, |value| {
+                    MainMessage::ChangeSettings(SettingsModified::ChangePassUseSpecial(value))
+                })
+                .size(20.),
+            )
+            .push(
+                checkbox("", pwd_config.upper, |value| {
+                    MainMessage::ChangeSettings(SettingsModified::ChangePassUseUpper(value))
+                })
+                .size(20.),
+            )
+            .push(
+                checkbox("", pwd_config.lower, |value| {
+                    MainMessage::ChangeSettings(SettingsModified::ChangePassUseLower(value))
+                })
+                .size(20.),
+            )
+            .push(
+                checkbox("", pwd_config.number, |value| {
+                    MainMessage::ChangeSettings(SettingsModified::ChangePassUseNumber(value))
+                })
+                .size(20.),
             )
             .spacing(12.)
             .width(Length::Shrink)
