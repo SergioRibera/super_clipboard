@@ -4,12 +4,11 @@
 extern crate abomonation_derive;
 
 mod args;
-mod daemon;
 mod gui;
-mod keys;
 mod settings;
 mod ui;
 mod update;
+mod utils;
 
 use args::parse_cli;
 use iced::{Application, Settings};

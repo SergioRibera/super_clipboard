@@ -61,6 +61,7 @@ impl text_input::StyleSheet for TextInputStyle {
     }
 }
 
+#[allow(dead_code)]
 pub fn get_input_keys_listening_style() -> iced::theme::TextInput {
     iced::theme::TextInput::Custom(Box::new(TextInputStyle(true)))
 }

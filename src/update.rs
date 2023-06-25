@@ -1,17 +1,23 @@
 use std::str::FromStr;
 
-use global_hotkey::hotkey::HotKey;
+use device_query::DeviceQuery;
+use global_hotkey::{hotkey::HotKey, GlobalHotKeyEvent};
 use iced::{window, Command};
 use log::trace;
 
 use crate::{
-    daemon,
+    utils::{self, check_clipboard, track_mouse},
     settings::{save_settings, ClipboardItem},
     ui::{MainApp, MainMessage, SettingsModified},
 };
 
 pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMessage> {
     match message {
+        MainMessage::HiddeApplication => {
+            app.visible = false;
+            app.follow = true;
+            window::change_mode(window::Mode::Hidden)
+        }
         MainMessage::Open(url) => {
             if url.is_empty() {
                 return Command::none();
@@ -35,6 +41,40 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
         MainMessage::RemoveClipboard(i) => {
             app.settings.remove(i);
             Command::none()
+        }
+        MainMessage::CheckClipboard(_) => {
+            if let Some(msg) = check_clipboard(
+                &mut app.clipboard_ctx,
+                &mut app.last_data.last_str,
+                &mut app.last_data.last_image,
+                app.settings.preserve(),
+            ) {
+                match msg {
+                    utils::Message::AddClipboard(item) => {
+                        app.settings.push(item);
+                    }
+                    utils::Message::RemoveLastClipboard => {
+                        app.settings.remove(app.settings.clipboard().len() - 1);
+                    }
+                }
+            }
+            Command::none()
+        }
+        MainMessage::CheckShortcuts(_) => {
+            let mut commands = Vec::new();
+            if let Ok(_) = GlobalHotKeyEvent::receiver().try_recv() {
+                app.visible = true;
+                commands.push(window::change_mode(window::Mode::Windowed));
+            }
+
+            if app.follow && commands.len() > 0 {
+                app.follow = false;
+                let (x, y) =
+                    track_mouse(app.last_data.mouse_pos, app.device_state.get_mouse().coords);
+                app.last_data.mouse_pos = (x, y);
+                commands.push(window::move_to(x, y));
+            }
+            Command::batch(commands)
         }
         MainMessage::CheckSettings(_) => {
             if app.settings.is_changed {
@@ -64,35 +104,6 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
             }
             Command::none()
         }
-        MainMessage::DaemonEvent(e) => match e {
-            daemon::Event::Message(message) => match message {
-                daemon::Message::ToggleVisibility(v) => {
-                    app.visible = v;
-                    app.follow = !v;
-                    if v {
-                        window::change_mode(window::Mode::Windowed)
-                    } else {
-                        window::change_mode(window::Mode::Hidden)
-                    }
-                }
-                daemon::Message::ChangePosition((x, y)) => {
-                    if app.follow {
-                        window::move_to(x, y)
-                    } else {
-                        Command::none()
-                    }
-                }
-                daemon::Message::AddClipboard(item) => {
-                    app.settings.push(item);
-                    Command::none()
-                }
-                daemon::Message::RemoveLastClipboard => {
-                    app.settings.remove(app.settings.clipboard().len() - 1);
-                    Command::none()
-                }
-            },
-            _ => Command::none(),
-        },
         MainMessage::ChangeSettings(set) => {
             match set {
                 SettingsModified::MaxCapacity(v) => {
