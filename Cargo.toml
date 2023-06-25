@@ -11,18 +11,18 @@ strip = true
 opt-level = "z"
 
 [dependencies]
-open = "4.0.0"
-log = "0.4.17"
+open = "4.2.0"
+log = "0.4.19"
 rlsf = "0.2.1"
 dark-light = "1.0.0"
 abomonation = "0.7.3"
 env_logger = "0.10.0"
-iced_native = "0.9.1"
-device_query = "1.1.1"
-display-info = "0.4.1"
+iced_native = "0.10.3"
+device_query = "1.1.3"
+display-info = "0.4.2"
 arboard = { version = "3.2", features = ["wayland-data-control"] }
-clap = { version = "4.1.8", features = ["derive"] }
-iced = { version = "0.8.0", default-features = false, features = [
+clap = { version = "4.3.8", features = ["derive"] }
+iced = { version = "0.9.0", default-features = false, features = [
     "canvas",
     "glow",
     "image",
@@ -30,7 +30,7 @@ iced = { version = "0.8.0", default-features = false, features = [
     # "default_system_font",
     "async-std",
 ] }
-chrono = { version = "0.4.24", default-features = false, features = [
+chrono = { version = "0.4.26", default-features = false, features = [
     "clock",
     "std",
     "serde",
