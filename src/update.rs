@@ -42,6 +42,15 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
             app.settings.remove(i);
             Command::none()
         }
+        MainMessage::GeneratePassword => {
+            app.clipboard_ctx
+                .set_text(
+                    app.password_generator
+                        .generate_password(app.settings.password_generation().len),
+                )
+                .unwrap();
+            Command::none()
+        }
         MainMessage::CheckClipboard(_) => {
             if let Some(msg) = check_clipboard(
                 &mut app.clipboard_ctx,
@@ -54,7 +63,9 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                         app.settings.push(item);
                     }
                     utils::Message::RemoveLastClipboard => {
-                        app.settings.remove(app.settings.clipboard().len() - 1);
+                        if !app.settings.clipboard().is_empty() {
+                            app.settings.remove(app.settings.clipboard().len() - 1);
+                        }
                     }
                 }
             }
@@ -128,6 +139,23 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                         app.hotkeys_manager.register(app.hotkey).unwrap();
                     }
                     app.settings.set_shortcut(v)
+                }
+                SettingsModified::ChangePassLen(v) => {
+                    if let Ok(value) = v.parse::<usize>() {
+                        app.settings.password_generation_mut().len = value;
+                    }
+                }
+                SettingsModified::ChangePassUseSpecial(v) => {
+                    app.settings.password_generation_mut().special = v
+                }
+                SettingsModified::ChangePassUseUpper(v) => {
+                    app.settings.password_generation_mut().upper = v
+                }
+                SettingsModified::ChangePassUseLower(v) => {
+                    app.settings.password_generation_mut().lower = v
+                }
+                SettingsModified::ChangePassUseNumber(v) => {
+                    app.settings.password_generation_mut().number = v
                 }
             }
             Command::none()
