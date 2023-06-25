@@ -2,6 +2,7 @@
 name = "super_clipboard"
 authors = ["SergioRibera"]
 description = "GUI Application for manage history clipboard; Cli options overwrite settings"
+homepage = "https://github.com/SergioRibera/super_clipboard"
 license = "MIT"
 version = "1.1.0"
 edition = "2021"
