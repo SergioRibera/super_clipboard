@@ -1,6 +1,9 @@
+use std::str::FromStr;
 use std::time::{Duration, Instant};
 
 use arboard::Clipboard;
+use global_hotkey::hotkey::HotKey;
+use global_hotkey::GlobalHotKeyManager;
 use iced::widget::scrollable::Properties;
 use iced::widget::{svg, Row};
 use iced::{
@@ -28,6 +31,8 @@ pub struct MainApp {
     pub view: RouterView,
     pub visible: bool,
     pub follow: bool,
+    pub hotkeys_manager: GlobalHotKeyManager,
+    pub hotkey: HotKey,
     back_icon: svg::Handle,
     tip_icon: svg::Handle,
     dark_icon: svg::Handle,
@@ -74,9 +79,17 @@ impl Application for MainApp {
 
     fn new(settings: Self::Flags) -> (Self, Command<Self::Message>) {
         trace!("Creating Iced Application");
+
+        let hotkeys_manager = GlobalHotKeyManager::new().unwrap();
+        let hotkey = HotKey::from_str(&settings.shortcut()).unwrap();
+        hotkeys_manager.register(hotkey.clone()).unwrap();
+        println!("Hotkey registered: {hotkey:?}");
+
         (
             Self {
                 settings,
+                hotkey,
+                hotkeys_manager,
                 visible: true,
                 follow: false,
                 view: RouterView::Home,
@@ -111,8 +124,7 @@ impl Application for MainApp {
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         trace!("Subscription Batch");
         Subscription::batch(vec![
-            daemon::start_daemon(self.settings.shortcut(), self.settings.preserve())
-                .map(MainMessage::DaemonEvent),
+            daemon::start_daemon(self.settings.preserve()).map(MainMessage::DaemonEvent),
             iced::time::every(Duration::from_millis(self.settings.tick_save()))
                 .map(MainMessage::CheckSettings),
         ])

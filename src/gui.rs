@@ -1,14 +1,9 @@
-use std::sync::atomic::AtomicBool;
-
 use iced::{
     widget::{svg, text, Row},
     Element, Length,
 };
 
 use crate::ui::MainMessage;
-
-// if true listen to reset shortcut
-pub static LISTEN_KEYBOARD: AtomicBool = AtomicBool::new(false);
 
 fn tip(tip_icon: svg::Handle, msg: &str) -> impl Into<Element<'_, MainMessage>> {
     Row::new()
@@ -156,14 +151,12 @@ pub mod settings {
         ui::{
             mouse_listener::mouse_listener,
             styles::{
-                get_btn_transparent_style, get_input_keys_listening_style,
+                get_btn_transparent_style,
                 get_input_keys_none_style, get_tooltip_style,
             },
             MainMessage, RouterView, SettingsModified,
         },
     };
-
-    use super::LISTEN_KEYBOARD;
 
     pub fn back_bar<'a>(back_icon: svg::Handle) -> impl Into<Element<'a, MainMessage>> {
         button(
@@ -204,7 +197,7 @@ pub mod settings {
                 (
                     "Shortcut",
                     "Keys to active this window (click for modify)",
-                    "modify_key",
+                    "",
                 ),
                 (
                     "Date format",
@@ -238,12 +231,6 @@ pub mod settings {
     }
 
     pub fn list_elements(settings: &AppSettings) -> impl Into<Element<'_, MainMessage>> {
-        let is_listening = LISTEN_KEYBOARD.load(std::sync::atomic::Ordering::SeqCst);
-        let shortcut_style = if is_listening {
-            get_input_keys_listening_style()
-        } else {
-            get_input_keys_none_style()
-        };
         Column::new()
             .push(
                 button(text(settings.get_theme().toggle_str()).size(20.))
@@ -267,10 +254,10 @@ pub mod settings {
                 MainMessage::ChangeSettings(SettingsModified::TickToSave(value))
             }))
             .push(
-                text_input("", &settings.shortcut().join("+"), |value| {
+                text_input("", &settings.shortcut(), |value| {
                     MainMessage::ChangeSettings(SettingsModified::ChangeShortcut(value))
                 })
-                .style(shortcut_style),
+                .style(get_input_keys_none_style()),
             )
             .push(text_input("", settings.format_date(), |value| {
                 MainMessage::ChangeSettings(SettingsModified::DateFormat(value))

@@ -19,7 +19,7 @@ pub struct AppSettings {
     preserve: bool,
     transparent: bool,
     format_date: String,
-    activation_keys: Vec<String>,
+    activation_keys: String,
     clipboard: Vec<ClipboardItem>,
     #[unsafe_abomonate_ignore]
     pub is_changed: bool,
@@ -95,7 +95,7 @@ impl Default for AppSettings {
             preserve: false,
             is_changed: false,
             format_date: "%d %b %Y - %H:%M:%S".to_string(),
-            activation_keys: vec!["LShift".to_string(), "V".to_string(), "Meta".to_string()],
+            activation_keys: "super+shift+v".to_string(),
             clipboard: Vec::new(),
         }
     }
@@ -137,7 +137,7 @@ impl AppSettings {
         self.is_changed = true;
     }
 
-    pub fn set_shortcut(&mut self, keys: Vec<String>) {
+    pub fn set_shortcut(&mut self, keys: String) {
         self.activation_keys = keys;
         self.is_changed = true;
     }
@@ -185,8 +185,8 @@ impl AppSettings {
         self.preserve
     }
 
-    pub fn shortcut(&self) -> &[String] {
-        self.activation_keys.as_ref()
+    pub fn shortcut(&self) -> String {
+        self.activation_keys.clone()
     }
 
     pub fn clipboard(&self) -> &[ClipboardItem] {

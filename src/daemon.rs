@@ -5,17 +5,13 @@ use std::{
 };
 
 use arboard::Clipboard;
-use device_query::{DeviceQuery, DeviceState, Keycode};
+use device_query::{DeviceQuery, DeviceState};
 use display_info::DisplayInfo;
+use global_hotkey::GlobalHotKeyEvent;
 use iced::{subscription, Subscription};
 use log::{debug, info, trace};
 
-use crate::{
-    gui::LISTEN_KEYBOARD,
-    keys::{keycode_from_str, keycode_to_str},
-    settings::ClipboardItem,
-    APP_HEIGHT, APP_MOUSE_MARGIN, APP_WIDTH,
-};
+use crate::{settings::ClipboardItem, APP_HEIGHT, APP_MOUSE_MARGIN, APP_WIDTH};
 
 fn track_mouse(coords: (i32, i32), x: &mut i32, y: &mut i32, sender: SyncSender<Message>) {
     let (new_x, new_y) = coords;
@@ -56,33 +52,6 @@ fn track_mouse(coords: (i32, i32), x: &mut i32, y: &mut i32, sender: SyncSender<
             .unwrap()
     }
     thread::sleep(Duration::from_millis(50));
-}
-
-fn listen_keyboard(keys: Vec<Keycode>, shortcuts: Vec<Keycode>, sender: SyncSender<Message>) {
-    if keys.is_empty() {
-        return;
-    }
-
-    trace!("Get AtomicBool Ordering::SeqCst; LISTEN_KEYBOARD");
-    let is_listening = LISTEN_KEYBOARD.load(std::sync::atomic::Ordering::SeqCst);
-
-    debug!("LISTEN_KEYBOARD: {is_listening}");
-    if !is_listening && keys == shortcuts {
-        info!("Shortcut pressed; Showing window");
-        sender.send(Message::ToggleVisibility(true)).unwrap()
-    } else if is_listening {
-        if keys.contains(&Keycode::Escape) {
-            info!("Set false to LISTEN_KEYBOARD");
-            LISTEN_KEYBOARD.store(false, std::sync::atomic::Ordering::SeqCst);
-            return;
-        }
-        trace!("Sending new keys presseds");
-        sender
-            .send(Message::ChangeKeys(
-                keys.iter().map(keycode_to_str).collect(),
-            ))
-            .unwrap();
-    }
 }
 
 fn check_clipboard(
@@ -128,23 +97,16 @@ fn check_clipboard(
     }
 }
 
-pub fn start_daemon(shortcuts: &[String], preserve: bool) -> Subscription<Event> {
+pub fn start_daemon(preserve: bool) -> Subscription<Event> {
     struct Daemon;
     trace!("Starting Instantiate daemon");
 
-    let shortcuts = shortcuts
-        .iter()
-        .map(|k| keycode_from_str(k))
-        .collect::<Vec<Keycode>>();
-
-    info!("Application Shortuct mapped");
-
     subscription::unfold(
         std::any::TypeId::of::<Daemon>(),
-        State::Disconnected(shortcuts, preserve),
+        State::Disconnected(preserve),
         |state| async {
             match state {
-                State::Disconnected(shortcuts, preserve) => {
+                State::Disconnected(preserve) => {
                     let (sender, rec) = std::sync::mpsc::sync_channel::<Message>(20);
                     trace!("Creating mpsc channel");
 
@@ -164,11 +126,6 @@ pub fn start_daemon(shortcuts: &[String], preserve: bool) -> Subscription<Event>
                                 &mut y,
                                 sender.clone(),
                             );
-                            listen_keyboard(
-                                device_state.get_keys(),
-                                shortcuts.clone(),
-                                sender.clone(),
-                            );
                             check_clipboard(
                                 &mut ctx,
                                 &mut last_str,
@@ -176,6 +133,9 @@ pub fn start_daemon(shortcuts: &[String], preserve: bool) -> Subscription<Event>
                                 preserve,
                                 sender.clone(),
                             );
+                            if let Ok(_) = GlobalHotKeyEvent::receiver().try_recv() {
+                                sender.send(Message::ToggleVisibility(true)).unwrap();
+                            }
                             thread::sleep(Duration::from_millis(200));
                         }
                     });
@@ -193,7 +153,7 @@ pub fn start_daemon(shortcuts: &[String], preserve: bool) -> Subscription<Event>
 
 #[derive(Debug)]
 enum State {
-    Disconnected(Vec<Keycode>, bool),
+    Disconnected(bool),
     Connected(mpsc::Receiver<Message>),
 }
 
@@ -209,5 +169,4 @@ pub enum Message {
     ToggleVisibility(bool),
     ChangePosition((i32, i32)),
     AddClipboard(ClipboardItem),
-    ChangeKeys(Vec<String>),
 }

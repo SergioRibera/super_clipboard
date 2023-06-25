@@ -1,9 +1,11 @@
+use std::str::FromStr;
+
+use global_hotkey::hotkey::HotKey;
 use iced::{window, Command};
 use log::trace;
 
 use crate::{
     daemon,
-    gui::LISTEN_KEYBOARD,
     settings::{save_settings, ClipboardItem},
     ui::{MainApp, MainMessage, SettingsModified},
 };
@@ -14,11 +16,7 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
             if url.is_empty() {
                 return Command::none();
             }
-            if url == "modify_key" {
-                LISTEN_KEYBOARD.store(true, std::sync::atomic::Ordering::SeqCst);
-            } else {
-                open::that(url).unwrap_or_default();
-            }
+            open::that(url).unwrap_or_default();
             Command::none()
         }
         MainMessage::ChangeView(view) => {
@@ -74,7 +72,6 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                     if v {
                         window::change_mode(window::Mode::Windowed)
                     } else {
-                        LISTEN_KEYBOARD.store(false, std::sync::atomic::Ordering::SeqCst);
                         window::change_mode(window::Mode::Hidden)
                     }
                 }
@@ -87,13 +84,6 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                 }
                 daemon::Message::AddClipboard(item) => {
                     app.settings.push(item);
-                    Command::none()
-                }
-                daemon::Message::ChangeKeys(v) => {
-                    if app.visible {
-                        trace!("Daemon Change Keys");
-                        app.settings.set_shortcut(v);
-                    }
                     Command::none()
                 }
                 daemon::Message::RemoveLastClipboard => {
@@ -121,7 +111,14 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                 SettingsModified::ChangeTransparency(v) => app.settings.set_transparent(v),
                 SettingsModified::ChangeShortcut(v) => {
                     trace!("Settigns Change Keys");
-                    let v = v.split('+').map(|k| k.to_string()).collect::<Vec<String>>();
+                    match HotKey::from_str(&v) {
+                        Ok(hotkey) => {
+                            app.hotkey = hotkey;
+                            app.hotkeys_manager.unregister(app.hotkey).unwrap();
+                            app.hotkeys_manager.register(app.hotkey).unwrap();
+                        }
+                        Err(_) => {}
+                    }
                     app.settings.set_shortcut(v)
                 }
             }
