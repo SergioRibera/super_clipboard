@@ -19,6 +19,7 @@ In search of a clipboard manager that is comfortable and I can have instantly ne
 - Follow cursor
 - Position based on the display of each screen
 - Transparent UI
+- Generation Random Password
 
 > **NOTE:** The blur it's depends of your compositor
 
