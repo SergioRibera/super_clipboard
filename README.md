@@ -12,6 +12,24 @@ In search of a clipboard manager that is comfortable and I can have instantly ne
 
 > **Warning:** It can run in gnome, but details like mouse tracking, transparency and window colors don't work quite right, if you would like to work on gnome support you can leave your feedback in this [issue](https://github.com/SergioRibera/super_clipboard/issues/2) to take it into account.
 
+### Instalation
+- ArchLinux
+```sh
+# With yay
+yay -S super_clipboard
+# or with Paru
+paru super_clipboard
+# or manually
+git clone https://aur.archlinux.org/super_clipboard.git /tmp/super_clipboard && \
+    cd /tmp/super_clipboard && makepkg -si
+```
+- Manually
+    - Go to [release](https://github.com/SergioRibera/super_clipboard/releases)
+    - Download latest
+    - Unpack
+    - Move binary to /usr/bin
+    - Done
+
 ### Features
 - Clean UI
 - Text and Image clipboard
