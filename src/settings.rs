@@ -212,6 +212,9 @@ impl AppSettings {
     }
 
     pub fn remove(&mut self, i: usize) {
+        if self.clipboard.is_empty() || i >= self.clipboard.len() {
+            return;
+        }
         self.clipboard.remove(i);
         if self.store {
             self.is_changed = true;
