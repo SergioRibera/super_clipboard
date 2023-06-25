@@ -62,12 +62,12 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
         }
         MainMessage::CheckShortcuts(_) => {
             let mut commands = Vec::new();
-            if let Ok(_) = GlobalHotKeyEvent::receiver().try_recv() {
+            if GlobalHotKeyEvent::receiver().try_recv().is_ok() {
                 app.visible = true;
                 commands.push(window::change_mode(window::Mode::Windowed));
             }
 
-            if app.follow && commands.len() > 0 {
+            if app.follow && !commands.is_empty() {
                 app.follow = false;
                 let (x, y) =
                     track_mouse(app.last_data.mouse_pos, app.device_state.get_mouse().coords);
@@ -122,13 +122,10 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                 SettingsModified::ChangeTransparency(v) => app.settings.set_transparent(v),
                 SettingsModified::ChangeShortcut(v) => {
                     trace!("Settigns Change Keys");
-                    match HotKey::from_str(&v) {
-                        Ok(hotkey) => {
-                            app.hotkey = hotkey;
-                            app.hotkeys_manager.unregister(app.hotkey).unwrap();
-                            app.hotkeys_manager.register(app.hotkey).unwrap();
-                        }
-                        Err(_) => {}
+                    if let Ok(hotkey) = HotKey::from_str(&v) {
+                        app.hotkey = hotkey;
+                        app.hotkeys_manager.unregister(app.hotkey).unwrap();
+                        app.hotkeys_manager.register(app.hotkey).unwrap();
                     }
                     app.settings.set_shortcut(v)
                 }
