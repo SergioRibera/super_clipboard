@@ -8,6 +8,13 @@ env:
 
 on:
   push:
+    paths-ignore:
+      - ".github/workflow/*.yml"
+      - "**/Makefile.toml"
+      - "Cross.toml"
+      - "release.toml"
+      - "LICENSE"
+      - "README.md"
     tags:
       - "*"
 
@@ -27,18 +34,14 @@ jobs:
       - name: build release
         uses: actions-rs/cargo@v1.0.1
         with:
-          command: build
           args: --release
-      - name: Rename build
+          command: build
+      - name: Post Build | Prepare artifacts
         run: |
-          cp target/release/${{ env.APP_NAME }} ${{ env.APP_NAME }}_x86_64-unknown-linux-gnu
-      - name: Upload artifact
-        uses: actions/upload-artifact@master
-        with:
-          name: ${{ env.APP_NAME }}_x86_64-unknown-linux-gnu
-          path: ${{ env.APP_NAME }}_x86_64-unknown-linux-gnu
+          mv target/release/${{ env.APP_NAME }} ${{ env.APP_NAME }}
+          tar cvzf ${{ env.APP_NAME }}_x86_64-linux.tar.gz LICENSE ${{ env.APP_NAME }}
       - name: Upload Release
         uses: softprops/action-gh-release@v1
         with:
+          files: ${{ env.APP_NAME }}_x86_64-linux.tar.gz
           prerelease: ${{ contains(github.ref_name, 'a') }}
-          files: ${{ env.APP_NAME }}_x86_64-unknown-linux-gnu
