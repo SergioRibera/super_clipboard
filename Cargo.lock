@@ -1532,6 +1532,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "518faa5064866338b013ff9b2350dc318e14cc4fcd6cb8206d7e7c9886c98815"
 
 [[package]]
+name = "global-hotkey"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a0b24efd538d93115c3e2d3d36a09fb626a8d49cc0963e54ed1281169b982051"
+dependencies = [
+ "crossbeam-channel",
+ "keyboard-types",
+ "once_cell",
+ "thiserror",
+ "windows-sys 0.48.0",
+ "x11-dl",
+]
+
+[[package]]
 name = "gloo-timers"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2087,6 +2101,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef4fc70d0ab7e5b6bafa30216a6b48705ea964cdfc29c050f2412295eba58077"
 dependencies = [
  "mutate_once",
+]
+
+[[package]]
+name = "keyboard-types"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b7668b7cff6a51fe61cdde64cd27c8a220786f399501b57ebe36f7d8112fd68"
+dependencies = [
+ "bitflags",
+ "serde",
+ "unicode-segmentation",
 ]
 
 [[package]]
@@ -3506,6 +3531,7 @@ dependencies = [
  "device_query",
  "display-info",
  "env_logger",
+ "global-hotkey",
  "iced",
  "iced_native",
  "log",
