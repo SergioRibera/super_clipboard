@@ -2,6 +2,7 @@ use std::str::FromStr;
 use std::time::{Duration, Instant};
 
 use arboard::Clipboard;
+use device_query::DeviceState;
 use global_hotkey::hotkey::HotKey;
 use global_hotkey::GlobalHotKeyManager;
 use iced::widget::scrollable::Properties;
@@ -13,7 +14,6 @@ use iced::{
 use iced::{Application, Color, Command, Padding, Subscription};
 use log::{info, trace};
 
-use crate::daemon;
 use crate::gui::{home, settings};
 use crate::settings::ThemeType;
 use crate::settings::{AppSettings, ClipboardItem};
@@ -28,17 +28,25 @@ pub mod styles;
 pub struct MainApp {
     pub settings: AppSettings,
     pub clipboard_ctx: Clipboard,
+    pub device_state: DeviceState,
     pub view: RouterView,
     pub visible: bool,
     pub follow: bool,
     pub hotkeys_manager: GlobalHotKeyManager,
     pub hotkey: HotKey,
+    pub last_data: LastData,
     back_icon: svg::Handle,
     tip_icon: svg::Handle,
     dark_icon: svg::Handle,
     light_icon: svg::Handle,
     trash_icon: svg::Handle,
     settings_icon: svg::Handle,
+}
+
+pub struct LastData {
+    pub last_str: String,
+    pub last_image: (usize, usize, usize, [u8; 2]),
+    pub mouse_pos: (i32, i32),
 }
 
 #[derive(Debug, Clone)]
@@ -51,11 +59,13 @@ pub enum RouterView {
 pub enum MainMessage {
     ClearClipboard,
     ThemeChangedToggle,
+    HiddeApplication,
     Open(String),
     ChangeSettings(SettingsModified),
     ChangeView(RouterView),
+    CheckClipboard(Instant),
     CheckSettings(Instant),
-    DaemonEvent(daemon::Event),
+    CheckShortcuts(Instant),
     RemoveClipboard(usize),
     SetClipboard(ClipboardItem),
 }
@@ -85,15 +95,24 @@ impl Application for MainApp {
         hotkeys_manager.register(hotkey.clone()).unwrap();
         println!("Hotkey registered: {hotkey:?}");
 
+        let mut clipboard_ctx = Clipboard::new().unwrap();
+        let last_str = clipboard_ctx.get_text().unwrap_or_default();
+
         (
             Self {
                 settings,
                 hotkey,
+                clipboard_ctx,
                 hotkeys_manager,
                 visible: true,
                 follow: false,
                 view: RouterView::Home,
-                clipboard_ctx: Clipboard::new().unwrap(),
+                device_state: DeviceState::new(),
+                last_data: LastData {
+                    last_str,
+                    last_image: (0usize, 0usize, 0usize, [0u8; 2]),
+                    mouse_pos: (0, 0),
+                },
                 back_icon: svg::Handle::from_memory(
                     include_bytes!("../../assets/back.svg").to_vec(),
                 ),
@@ -124,7 +143,11 @@ impl Application for MainApp {
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         trace!("Subscription Batch");
         Subscription::batch(vec![
-            daemon::start_daemon(self.settings.preserve()).map(MainMessage::DaemonEvent),
+            // Check Shortcuts
+            iced::time::every(Duration::from_millis(200)).map(MainMessage::CheckShortcuts),
+            // Check Clipboard
+            iced::time::every(Duration::from_secs(1)).map(MainMessage::CheckClipboard),
+            // Check Changed Settings
             iced::time::every(Duration::from_millis(self.settings.tick_save()))
                 .map(MainMessage::CheckSettings),
         ])
@@ -177,9 +200,7 @@ impl Application for MainApp {
         };
 
         container(
-            mouse_listener(content).on_mouse_exit(MainMessage::DaemonEvent(
-                daemon::Event::Message(daemon::Message::ToggleVisibility(false)),
-            )),
+            mouse_listener(content).on_mouse_exit(MainMessage::HiddeApplication),
         )
         .width(Length::Fill)
         .height(Length::Fill)
