@@ -90,7 +90,7 @@ impl Application for MainApp {
 
         let hotkeys_manager = GlobalHotKeyManager::new().unwrap();
         let hotkey = HotKey::from_str(&settings.shortcut()).unwrap();
-        hotkeys_manager.register(hotkey.clone()).unwrap();
+        hotkeys_manager.register(hotkey).unwrap();
         println!("Hotkey registered: {hotkey:?}");
 
         let mut clipboard_ctx = Clipboard::new().unwrap();
@@ -149,10 +149,9 @@ impl Application for MainApp {
             iced::time::every(Duration::from_millis(self.settings.tick_save()))
                 .map(MainMessage::CheckSettings),
             events_with(|e, _status| match e {
-                iced_native::Event::Mouse(e) => match e {
-                    iced_native::mouse::Event::CursorLeft => Some(MainMessage::HiddeApplication),
-                    _ => None,
-                },
+                iced_native::Event::Mouse(iced_native::mouse::Event::CursorLeft) => {
+                    Some(MainMessage::HiddeApplication)
+                }
                 _ => None,
             }),
         ])
