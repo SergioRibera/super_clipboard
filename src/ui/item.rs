@@ -1,12 +1,12 @@
 use iced::{
     alignment::Horizontal,
-    widget::{container, image, text, Column},
+    widget::{container, image, text, Column, mouse_area},
     Element, Length,
 };
 
 use crate::settings::ClipboardItem;
 
-use super::{mouse_listener::mouse_listener, styles::get_item_container_style, MainMessage};
+use super::{styles::get_item_container_style, MainMessage};
 
 #[must_use]
 pub fn render_item(
@@ -48,7 +48,7 @@ pub fn render_item(
             .into()
         }
     };
-    mouse_listener(
+    mouse_area(
         container(content)
             .width(Length::Fill)
             .height(Length::Shrink)

@@ -12,6 +12,7 @@ use iced::{
     Element, Length, Theme,
 };
 use iced::{Application, Color, Command, Padding, Subscription};
+use iced_native::subscription::events_with;
 use log::{info, trace};
 
 use crate::gui::{home, settings};
@@ -19,10 +20,7 @@ use crate::settings::ThemeType;
 use crate::settings::{AppSettings, ClipboardItem};
 use crate::update::handle_update;
 
-use self::mouse_listener::mouse_listener;
-
 pub mod item;
-pub mod mouse_listener;
 pub mod styles;
 
 pub struct MainApp {
@@ -150,6 +148,13 @@ impl Application for MainApp {
             // Check Changed Settings
             iced::time::every(Duration::from_millis(self.settings.tick_save()))
                 .map(MainMessage::CheckSettings),
+            events_with(|e, _status| match e {
+                iced_native::Event::Mouse(e) => match e {
+                    iced_native::mouse::Event::CursorLeft => Some(MainMessage::HiddeApplication),
+                    _ => None,
+                },
+                _ => None,
+            }),
         ])
     }
 
@@ -175,8 +180,8 @@ impl Application for MainApp {
                         self.settings.format_date(),
                         self.settings.clipboard(),
                     ))
-                    .vertical_scroll(Properties::default().width(5.).scroller_width(5.))
-                    .height(Length::Fill),
+                    .height(Length::Fill)
+                    .vertical_scroll(Properties::new().width(5.).scroller_width(5.)),
                 )
                 .spacing(10)
                 .padding(10)
@@ -199,14 +204,12 @@ impl Application for MainApp {
                 .into(),
         };
 
-        container(
-            mouse_listener(content).on_mouse_exit(MainMessage::HiddeApplication),
-        )
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .center_x()
-        .center_y()
-        .into()
+        container(content)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_x()
+            .center_y()
+            .into()
     }
 
     fn theme(&self) -> Theme {
