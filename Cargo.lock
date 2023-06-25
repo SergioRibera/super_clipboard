@@ -3671,6 +3671,7 @@ dependencies = [
  "iced_native",
  "log",
  "open",
+ "rand",
  "rlsf",
 ]
 
