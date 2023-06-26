@@ -56,7 +56,7 @@ pub fn load_settings() -> AppSettings {
     path.push("settings");
     path.set_extension("data");
 
-    println!("Path: {path:?}");
+    log::info!("Settings Loaded!!");
     let Ok(mut file) = File::open(path) else {
         return AppSettings::default();
     };
@@ -75,7 +75,7 @@ pub fn save_settings(value: &AppSettings) {
         path.push("settings");
         path.set_extension("data");
 
-        println!("Path: {path:?}");
+        log::info!("Settings saved into \"{path:?}\"");
         if let Ok(mut file) = File::create(path) {
             unsafe {
                 encode(value, &mut file);
