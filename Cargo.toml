@@ -4,7 +4,7 @@ authors = ["SergioRibera"]
 description = "GUI Application for manage history clipboard; Cli options overwrite settings"
 homepage = "https://github.com/SergioRibera/super_clipboard"
 license = "MIT"
-version = "2.0.0"
+version = "2.0.1"
 edition = "2021"
 
 [profile.release]
