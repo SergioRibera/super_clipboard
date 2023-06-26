@@ -12,6 +12,10 @@ lto = true
 strip = true
 opt-level = "z"
 
+[[bin]]
+name = "superclipboard"
+path = "src/main.rs"
+
 [dependencies]
 open = "4.2.0"
 log = "0.4.19"

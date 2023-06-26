@@ -4,7 +4,7 @@ permissions:
   contents: write
 
 env:
-  APP_NAME: super_clipboard
+  APP_NAME: superclipboard
 
 on:
   push:
