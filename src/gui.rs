@@ -142,17 +142,22 @@ pub mod home {
     pub fn show_items(
         fmt: &str,
         settings: &[ClipboardItem],
+        pinned: &[ClipboardItem],
     ) -> impl Into<Element<'static, MainMessage>> {
-        column(
+        let mut clip = pinned
+            .iter()
+            .enumerate()
+            .rev()
+            .map(|(i, item)| render_item(fmt, i, Some(i), item))
+            .collect::<Vec<_>>();
+        clip.extend(
             settings
                 .iter()
                 .enumerate()
                 .rev()
-                .map(|(i, item)| render_item(fmt, i, item))
-                .collect(),
-        )
-        .width(Length::Fill)
-        .spacing(5)
+                .map(|(i, item)| render_item(fmt, i, None, item)),
+        );
+        column(clip).width(Length::Fill).spacing(5)
     }
 }
 

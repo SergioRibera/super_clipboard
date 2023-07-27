@@ -5,8 +5,9 @@ use global_hotkey::{hotkey::HotKey, GlobalHotKeyEvent};
 use iced::{window, Command};
 use log::trace;
 
+use crate::data::{save_pined, save_settings};
 use crate::{
-    settings::{save_settings, ClipboardItem},
+    settings::ClipboardItem,
     ui::{MainApp, MainMessage, SettingsModified},
     utils::{self, check_clipboard, track_mouse},
 };
@@ -40,6 +41,19 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
         }
         MainMessage::RemoveClipboard(i) => {
             app.settings.remove(i);
+            Command::none()
+        }
+        MainMessage::TogglePinClipboard(index, item) => {
+            if let Some(i) = index {
+                app.pinned.remove_item(i);
+            } else {
+                if let Some(item) = item {
+                    app.pinned.add_item(item.clone());
+                    if let Some(pos) = app.settings.clipboard().iter().position(|p| p == &item) {
+                        app.settings.remove(pos);
+                    }
+                }
+            }
             Command::none()
         }
         MainMessage::GeneratePassword => {
@@ -88,6 +102,10 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
             Command::batch(commands)
         }
         MainMessage::CheckSettings(_) => {
+            if app.pinned.is_changed {
+                app.pinned.is_changed = false;
+                save_pined(&app.pinned);
+            }
             if app.settings.is_changed {
                 app.settings.is_changed = false;
                 if !app.settings.store() {
