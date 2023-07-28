@@ -66,6 +66,7 @@ SUPER_CLIPBOARD_LOG=off,superclipboard::ui=trace superclipboard
 ### TODO
 - [ ] Autopaste when select from history
 - [ ] Image from path copied
+- [ ] Synchronization between devices on the same network
 - [x] pin clipboard items
 - [x] Fix keyboard shortcut initial parsing
 - [x] Fix performance increase
