@@ -46,12 +46,10 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
         MainMessage::TogglePinClipboard(index, item) => {
             if let Some(i) = index {
                 app.pinned.remove_item(i);
-            } else {
-                if let Some(item) = item {
-                    app.pinned.add_item(item.clone());
-                    if let Some(pos) = app.settings.clipboard().iter().position(|p| p == &item) {
-                        app.settings.remove(pos);
-                    }
+            } else if let Some(item) = item {
+                app.pinned.add_item(item.clone());
+                if let Some(pos) = app.settings.clipboard().iter().position(|p| p == &item) {
+                    app.settings.remove(pos);
                 }
             }
             Command::none()
