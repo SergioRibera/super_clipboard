@@ -8,6 +8,7 @@ mod data;
 mod gui;
 mod passwd;
 mod settings;
+mod sync;
 mod ui;
 mod update;
 mod utils;
