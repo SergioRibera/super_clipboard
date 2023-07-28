@@ -3654,7 +3654,7 @@ checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "super_clipboard"
-version = "2.0.1"
+version = "2.1.0"
 dependencies = [
  "abomonation",
  "abomonation_derive",
