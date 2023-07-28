@@ -37,6 +37,7 @@ git clone https://aur.archlinux.org/super_clipboard.git /tmp/super_clipboard && 
 - Follow cursor
 - Position based on the display of each screen
 - Transparent UI
+- Pin/Unpin items of clipboard history
 - Generation Random Password
 
 > **NOTE:** The blur it's depends of your compositor
@@ -56,13 +57,16 @@ To show Logs you need set `SUPER_CLIPBOARD_LOG` env variable, here some examples
 SUPER_CLIPBOARD_LOG=error superclipboard
 # Dump to file
 SUPER_CLIPBOARD_LOG=info superclipboard >> /tmp/superclipboard_logs.txt
-# Show only super_clipboard crate logs
-SUPER_CLIPBOARD_LOG=off,super_clipboard=info superclipboard
+# Show only superclipboard crate logs
+SUPER_CLIPBOARD_LOG=off,superclipboard=info superclipboard
+# Show only module of superclipboard crate logs
+SUPER_CLIPBOARD_LOG=off,superclipboard::ui=trace superclipboard
 ```
 
 ### TODO
 - [ ] Autopaste when select from history
 - [ ] Image from path copied
+- [x] pin clipboard items
 - [x] Fix keyboard shortcut initial parsing
 - [x] Fix performance increase
 - [x] Position based on the display of each screen

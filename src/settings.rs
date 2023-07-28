@@ -1,14 +1,11 @@
 #![allow(unused)]
-use std::{
-    fs::File,
-    io::{BufReader, Read},
-};
 
-use abomonation::{decode, encode};
 use app_dirs2::{data_root, AppDataType};
 use arboard::ImageData;
 use chrono::prelude::*;
 use clap::ValueEnum;
+
+use crate::data::save_pined;
 
 #[derive(Abomonation, Clone, Eq, PartialEq)]
 pub struct AppSettings {
@@ -22,6 +19,13 @@ pub struct AppSettings {
     activation_keys: String,
     clipboard: Vec<ClipboardItem>,
     password_generation: PasswordGenSettings,
+    #[unsafe_abomonate_ignore]
+    pub is_changed: bool,
+}
+
+#[derive(Abomonation, Clone, Default, Eq, PartialEq)]
+pub struct PinnedClipboard {
+    clipboard: Vec<ClipboardItem>,
     #[unsafe_abomonate_ignore]
     pub is_changed: bool,
 }
@@ -45,43 +49,6 @@ pub enum ThemeType {
 pub enum ClipboardItem {
     Text(String, String),
     Image(String, usize, usize, Vec<u8>),
-}
-
-#[must_use]
-pub fn load_settings() -> AppSettings {
-    let Ok(mut path) = data_root(AppDataType::UserConfig) else {
-        return AppSettings::default();
-    };
-    path.push("super_clipboard");
-    path.push("settings");
-    path.set_extension("data");
-
-    log::info!("Settings Loaded!!");
-    let Ok(mut file) = File::open(path) else {
-        return AppSettings::default();
-    };
-    let mut bytes = Vec::new();
-    file.read_to_end(&mut bytes).unwrap();
-
-    if let Some((settings, _)) = unsafe { decode::<AppSettings>(&mut bytes) } {
-        return settings.clone();
-    }
-    AppSettings::default()
-}
-
-pub fn save_settings(value: &AppSettings) {
-    if let Ok(mut path) = data_root(AppDataType::UserConfig) {
-        path.push("super_clipboard");
-        path.push("settings");
-        path.set_extension("data");
-
-        log::info!("Settings saved into \"{path:?}\"");
-        if let Ok(mut file) = File::create(path) {
-            unsafe {
-                encode(value, &mut file);
-            }
-        }
-    }
 }
 
 impl Default for AppSettings {
@@ -109,6 +76,22 @@ impl Default for AppSettings {
             activation_keys: "super+shift+v".to_string(),
             clipboard: Vec::new(),
         }
+    }
+}
+
+impl PinnedClipboard {
+    pub fn clipboard(&self) -> &[ClipboardItem] {
+        self.clipboard.as_ref()
+    }
+
+    pub fn add_item(&mut self, item: ClipboardItem) {
+        self.clipboard.push(item);
+        self.is_changed = true;
+    }
+
+    pub fn remove_item(&mut self, pos: usize) {
+        self.clipboard.remove(pos);
+        self.is_changed = true;
     }
 }
 
