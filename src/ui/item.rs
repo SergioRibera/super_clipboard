@@ -24,26 +24,14 @@ pub fn render_item(
         ClipboardItem::Text(_, value) => {
             let mut col = Column::new().spacing(5.);
             if !format_date.is_empty() {
-                col = col.push(top_item(
-                    fmt_date,
-                    i_pinned,
-                    item,
-                    pin_icon.clone(),
-                    unpin_icon.clone(),
-                ));
+                col = col.push(top_item(fmt_date, i_pinned, item, pin_icon, unpin_icon));
             }
             col.push(text(value.replace('\t', " ")).size(18.)).into()
         }
         ClipboardItem::Image(_, w, h, b) => {
             let mut col = Column::new().spacing(5.);
             if !format_date.is_empty() {
-                col = col.push(top_item(
-                    fmt_date,
-                    i_pinned,
-                    item,
-                    pin_icon.clone(),
-                    unpin_icon.clone(),
-                ));
+                col = col.push(top_item(fmt_date, i_pinned, item, pin_icon, unpin_icon));
             }
             let bytes = b.clone();
             col.push(
