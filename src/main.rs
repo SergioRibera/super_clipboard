@@ -4,6 +4,7 @@
 extern crate abomonation_derive;
 
 mod args;
+mod data;
 mod gui;
 mod passwd;
 mod settings;

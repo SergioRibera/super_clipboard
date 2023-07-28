@@ -1,6 +1,7 @@
 use clap::Parser;
 
-use crate::settings::{load_settings, AppSettings, ThemeType};
+use crate::data::load_settings;
+use crate::settings::{AppSettings, ThemeType};
 
 #[derive(Clone, Parser)]
 #[clap(
