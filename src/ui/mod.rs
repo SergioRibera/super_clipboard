@@ -18,8 +18,8 @@ use log::{info, trace};
 use crate::data::load_pined;
 use crate::gui::{home, settings};
 use crate::passwd::PasswordGenerator;
-use crate::settings::{ThemeType, PinnedClipboard};
 use crate::settings::{AppSettings, ClipboardItem};
+use crate::settings::{PinnedClipboard, ThemeType};
 use crate::update::handle_update;
 
 pub mod item;
@@ -44,6 +44,8 @@ pub struct MainApp {
     gen_password_icon: svg::Handle,
     trash_icon: svg::Handle,
     settings_icon: svg::Handle,
+    pin_icon: svg::Handle,
+    unpin_icon: svg::Handle,
 }
 
 pub struct LastData {
@@ -150,6 +152,12 @@ impl Application for MainApp {
                 settings_icon: svg::Handle::from_memory(
                     include_bytes!("../../assets/settings.svg").to_vec(),
                 ),
+                pin_icon: svg::Handle::from_memory(
+                    include_bytes!("../../assets/pin.svg").to_vec(),
+                ),
+                unpin_icon: svg::Handle::from_memory(
+                    include_bytes!("../../assets/unpin.svg").to_vec(),
+                ),
             },
             Command::none(),
         )
@@ -201,6 +209,8 @@ impl Application for MainApp {
                         self.settings.format_date(),
                         self.settings.clipboard(),
                         self.pinned.clipboard(),
+                        self.pin_icon.clone(),
+                        self.unpin_icon.clone(),
                     ))
                     .height(Length::Fill)
                     .vertical_scroll(Properties::new().width(5.).scroller_width(5.)),

@@ -1,4 +1,4 @@
-use iced::widget::{Button, Row};
+use iced::widget::{button, svg, tooltip, Row};
 use iced::{
     alignment::Horizontal,
     widget::{container, image, mouse_area, text, Column},
@@ -7,6 +7,7 @@ use iced::{
 
 use crate::settings::ClipboardItem;
 
+use super::styles::{get_btn_transparent_style, get_tooltip_style};
 use super::{styles::get_item_container_style, MainMessage};
 
 #[must_use]
@@ -15,20 +16,34 @@ pub fn render_item(
     i: usize,
     i_pinned: Option<usize>,
     item: &ClipboardItem,
+    pin_icon: svg::Handle,
+    unpin_icon: svg::Handle,
 ) -> Element<'static, MainMessage> {
     let fmt_date = item.format(format_date);
     let content: Element<MainMessage> = match item {
         ClipboardItem::Text(_, value) => {
             let mut col = Column::new().spacing(5.);
             if !format_date.is_empty() {
-                col = col.push(top_item(fmt_date, i_pinned, item));
+                col = col.push(top_item(
+                    fmt_date,
+                    i_pinned,
+                    item,
+                    pin_icon.clone(),
+                    unpin_icon.clone(),
+                ));
             }
             col.push(text(value.replace('\t', " ")).size(18.)).into()
         }
         ClipboardItem::Image(_, w, h, b) => {
             let mut col = Column::new().spacing(5.);
             if !format_date.is_empty() {
-                col = col.push(top_item(fmt_date, i_pinned, item));
+                col = col.push(top_item(
+                    fmt_date,
+                    i_pinned,
+                    item,
+                    pin_icon.clone(),
+                    unpin_icon.clone(),
+                ));
             }
             let bytes = b.clone();
             col.push(
@@ -56,16 +71,35 @@ fn top_item(
     fmt_date: String,
     i_pinned: Option<usize>,
     item: &ClipboardItem,
+    pin_icon: svg::Handle,
+    unpin_icon: svg::Handle,
 ) -> Element<'static, MainMessage> {
-    let mut row = Row::new();
-    let content = i_pinned.map(|_| "Remove").or(Some("Add")).unwrap();
+    let mut row = Row::new().align_items(iced_native::Alignment::Center);
+    log::trace!("Index Pinned: {i_pinned:?}");
+    let icon = i_pinned.as_ref().map(|_| unpin_icon).unwrap_or(pin_icon);
+    let tooltip_text = i_pinned
+        .as_ref()
+        .map(|_| "Unpin Item")
+        .unwrap_or("Pin Item");
+
     row = row.push(
-        Button::new(content)
+        tooltip(
+            button(
+                svg(icon)
+                    .width(Length::Fixed(15.0))
+                    .height(Length::Fixed(15.0)),
+            )
+            .padding(0)
+            .style(get_btn_transparent_style())
             .on_press(MainMessage::TogglePinClipboard(
                 i_pinned,
                 Some(item.clone()),
-            ))
-            .width(Length::Fixed(24.0)),
+            )),
+            tooltip_text,
+            tooltip::Position::Right,
+        )
+        .style(get_tooltip_style())
+        .size(15.),
     );
     row = row.push(
         text(fmt_date)
