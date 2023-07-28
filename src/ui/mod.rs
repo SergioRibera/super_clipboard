@@ -152,9 +152,7 @@ impl Application for MainApp {
                 settings_icon: svg::Handle::from_memory(
                     include_bytes!("../../assets/settings.svg").to_vec(),
                 ),
-                pin_icon: svg::Handle::from_memory(
-                    include_bytes!("../../assets/pin.svg").to_vec(),
-                ),
+                pin_icon: svg::Handle::from_memory(include_bytes!("../../assets/pin.svg").to_vec()),
                 unpin_icon: svg::Handle::from_memory(
                     include_bytes!("../../assets/unpin.svg").to_vec(),
                 ),
