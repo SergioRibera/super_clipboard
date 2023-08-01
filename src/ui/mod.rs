@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use arboard::Clipboard;
@@ -14,18 +15,21 @@ use iced::{
 use iced::{Application, Color, Command, Padding, Subscription};
 use iced_native::subscription::events_with;
 use log::{info, trace};
+use iced::futures::channel::mpsc::Sender;
 
 use crate::data::load_pined;
 use crate::gui::{home, settings};
 use crate::passwd::PasswordGenerator;
 use crate::settings::{AppSettings, ClipboardItem};
 use crate::settings::{PinnedClipboard, ThemeType};
+use crate::sync::{self, start_sync, MDnsMessage};
 use crate::update::handle_update;
 
 pub mod item;
 pub mod styles;
 
 pub struct MainApp {
+    pub sync_sender: Option<Sender<MDnsMessage>>,
     pub settings: AppSettings,
     pub pinned: PinnedClipboard,
     pub clipboard_ctx: Clipboard,
@@ -74,6 +78,8 @@ pub enum MainMessage {
     CheckShortcuts(Instant),
     RemoveClipboard(usize),
     SetClipboard(ClipboardItem),
+    // Sync
+    SyncDaemon(sync::Event),
     // Pin
     TogglePinClipboard(Option<usize>, Option<ClipboardItem>),
 }
@@ -123,9 +129,10 @@ impl Application for MainApp {
                 password_generator,
                 visible: true,
                 follow: false,
+                sync_sender: None,
+                pinned: load_pined(),
                 view: RouterView::Home,
                 device_state: DeviceState::new(),
-                pinned: load_pined(),
                 last_data: LastData {
                     last_str,
                     last_image: (0usize, 0usize, 0usize, [0u8; 2]),
@@ -181,6 +188,8 @@ impl Application for MainApp {
                 }
                 _ => None,
             }),
+            start_sync()
+                .map(MainMessage::SyncDaemon),
         ])
     }
 

@@ -3,14 +3,26 @@ use std::str::FromStr;
 use device_query::DeviceQuery;
 use global_hotkey::{hotkey::HotKey, GlobalHotKeyEvent};
 use iced::{window, Command};
+use iced_native::futures::SinkExt;
 use log::trace;
 
 use crate::data::{save_pined, save_settings};
+use crate::sync::{self, MDnsMessage};
 use crate::{
     settings::ClipboardItem,
     ui::{MainApp, MainMessage, SettingsModified},
     utils::{self, check_clipboard, track_mouse},
 };
+
+fn send_to_devices(app: &MainApp, msg: MDnsMessage) {
+    if let Some(sender) = app.sync_sender.clone() {
+        let item = msg.clone();
+        let mut sender = sender.clone();
+        tokio::spawn(async move {
+            sender.send(item).await.unwrap();
+        });
+    }
+}
 
 pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMessage> {
     match message {
@@ -54,6 +66,27 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
             }
             Command::none()
         }
+        MainMessage::SyncDaemon(e) => {
+            match e {
+                sync::Event::Message(msg) => match msg {
+                    sync::MDnsMessage::Clipboard { device: _, item } => match item {
+                        ClipboardItem::Text(_, c) => app.clipboard_ctx.set_text(c).unwrap(),
+                        ClipboardItem::Image(_, width, height, bytes) => {
+                            app.clipboard_ctx
+                                .set_image(arboard::ImageData {
+                                    width,
+                                    height,
+                                    bytes: bytes.into(),
+                                })
+                                .unwrap();
+                        }
+                    },
+                    _ => {}
+                },
+                sync::Event::Connected(sender) => app.sync_sender = Some(sender),
+            }
+            Command::none()
+        }
         MainMessage::GeneratePassword => {
             app.clipboard_ctx
                 .set_text(
@@ -72,7 +105,14 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
             ) {
                 match msg {
                     utils::Message::AddClipboard(item) => {
-                        app.settings.push(item);
+                        app.settings.push(item.clone());
+                        send_to_devices(
+                            app,
+                            MDnsMessage::Clipboard {
+                                device: app.settings.device().clone(),
+                                item,
+                            },
+                        )
                     }
                     utils::Message::RemoveLastClipboard => {
                         if !app.settings.clipboard().is_empty() {

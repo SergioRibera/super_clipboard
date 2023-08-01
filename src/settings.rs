@@ -6,9 +6,11 @@ use chrono::prelude::*;
 use clap::ValueEnum;
 
 use crate::data::save_pined;
+use crate::sync::MDnsDevice;
 
 #[derive(Abomonation, Clone, Eq, PartialEq)]
 pub struct AppSettings {
+    device: MDnsDevice,
     max_capacity: u64,
     tick_save: u64,
     theme: ThemeType,
@@ -62,6 +64,8 @@ impl Default for AppSettings {
             // Unspecified
             dark_light::Mode::Default => ThemeType::Dark,
         };
+        let binding = gethostname::gethostname();
+        let hostname = binding.to_str();
 
         Self {
             theme,
@@ -75,6 +79,10 @@ impl Default for AppSettings {
             format_date: "%d %b %Y - %H:%M:%S".to_string(),
             activation_keys: "super+shift+v".to_string(),
             clipboard: Vec::new(),
+            device: MDnsDevice {
+                device_id: machine_uid::get().unwrap_or_default(),
+                name: hostname.unwrap_or("").to_string(),
+            },
         }
     }
 }
@@ -236,6 +244,10 @@ impl AppSettings {
     pub fn set_password_generation(&mut self, password_generation: PasswordGenSettings) {
         self.password_generation = password_generation;
     }
+
+    pub fn device(&self) -> &MDnsDevice {
+        &self.device
+    }
 }
 
 impl ThemeType {
@@ -266,11 +278,29 @@ impl ClipboardItem {
                 .unwrap()
                 .format(fmt)
                 .to_string(),
-            // @TODO:Convert to base64
             ClipboardItem::Image(date, _, _, _) => DateTime::parse_from_rfc3339(date)
                 .unwrap()
                 .format(fmt)
                 .to_string(),
+        }
+    }
+
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        unsafe {
+            abomonation::encode(self, &mut bytes).unwrap();
+        }
+        bytes
+    }
+
+    pub fn from_bytes(data: &[u8]) -> Result<ClipboardItem, std::io::Error> {
+        let mut data = data.to_vec();
+        match unsafe { abomonation::decode::<ClipboardItem>(&mut data) } {
+            Some((item, _)) => Ok(item.clone()),
+            None => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Failed to decode data",
+            )),
         }
     }
 }
