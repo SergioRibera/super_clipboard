@@ -20,6 +20,7 @@ pub struct AppSettings {
     format_date: String,
     activation_keys: String,
     clipboard: Vec<ClipboardItem>,
+    linked_devices: Vec<MDnsDevice>,
     password_generation: PasswordGenSettings,
     #[unsafe_abomonate_ignore]
     pub is_changed: bool,
@@ -79,9 +80,11 @@ impl Default for AppSettings {
             format_date: "%d %b %Y - %H:%M:%S".to_string(),
             activation_keys: "super+shift+v".to_string(),
             clipboard: Vec::new(),
+            linked_devices: Vec::new(),
             device: MDnsDevice {
                 device_id: machine_uid::get().unwrap_or_default(),
                 name: hostname.unwrap_or("").to_string(),
+                os: std::env::consts::OS.to_string(),
             },
         }
     }
@@ -245,8 +248,25 @@ impl AppSettings {
         self.password_generation = password_generation;
     }
 
+    pub fn linked_devices(&self) -> Vec<MDnsDevice> {
+        self.linked_devices.clone()
+    }
+
+    pub fn add_linked_device(&mut self, device: MDnsDevice) {
+        if !self.linked_devices.contains(&device) {
+            self.linked_devices.push(device);
+            if self.store {
+                self.is_changed = true;
+            }
+        }
+    }
+
     pub fn device(&self) -> &MDnsDevice {
         &self.device
+    }
+
+    pub fn set_device_name(&mut self, value: String) {
+        self.device.name = value;
     }
 }
 

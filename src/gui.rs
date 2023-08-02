@@ -116,7 +116,7 @@ pub mod home {
                             )
                             .padding(0)
                             .style(get_btn_transparent_style())
-                            .on_press(MainMessage::ChangeView(RouterView::Settings)),
+                            .on_press(MainMessage::ChangeView(RouterView::Settings(false))),
                             "Show Settings",
                             tooltip::Position::Bottom,
                         )
@@ -162,6 +162,7 @@ pub mod home {
 }
 
 pub mod settings {
+    use iced::widget::Row;
     use iced::{
         widget::{
             button, checkbox, column, mouse_area, row, svg, text, text_input, tooltip, Column,
@@ -169,6 +170,8 @@ pub mod settings {
         Element, Length,
     };
 
+    use crate::sync::MDnsDevice;
+    use crate::ui::device::render_device;
     use crate::{
         settings::AppSettings,
         ui::{
@@ -178,18 +181,63 @@ pub mod settings {
     };
 
     pub fn back_bar<'a>(back_icon: svg::Handle) -> impl Into<Element<'a, MainMessage>> {
-        button(
-            row(vec![
-                svg(back_icon)
-                    .width(Length::Fixed(15.))
-                    .height(Length::Fixed(15.))
-                    .into(),
-                text("Back").size(18.).into(),
-            ])
-            .spacing(10.),
-        )
-        .style(get_btn_transparent_style())
-        .on_press(MainMessage::ChangeView(RouterView::Home))
+        Row::new()
+            .push(
+                button(
+                    row(vec![
+                        svg(back_icon)
+                            .width(Length::Fixed(15.))
+                            .height(Length::Fixed(15.))
+                            .into(),
+                        text("Back").size(18.).into(),
+                    ])
+                    .spacing(10.),
+                )
+                .style(get_btn_transparent_style())
+                .on_press(MainMessage::ChangeView(RouterView::Home))
+                .width(Length::FillPortion(2)),
+            )
+            .push(
+                Row::new()
+                    .push(
+                        tooltip(
+                            button(
+                                "Ajustes", // svg(passwd_icon)
+                                          //     .width(Length::Fixed(18.))
+                                          //     .height(Length::Fixed(18.)),
+                            )
+                            .padding(0)
+                            .style(get_btn_transparent_style())
+                            .on_press(MainMessage::ChangeView(RouterView::Settings(false))),
+                            "Settings Tab",
+                            tooltip::Position::Bottom,
+                        )
+                        .style(get_tooltip_style())
+                        .size(15.),
+                    )
+                    .push(
+                        tooltip(
+                            button(
+                                "Devices", // svg(trash_icon)
+                                          //     .width(Length::Fixed(18.))
+                                          //     .height(Length::Fixed(18.)),
+                            )
+                            .padding(0)
+                            .style(get_btn_transparent_style())
+                            .on_press(MainMessage::ChangeView(RouterView::Settings(true))),
+                            "Sync Devices Tab",
+                            tooltip::Position::Bottom,
+                        )
+                        .style(get_tooltip_style())
+                        .size(15.),
+                    )
+                    .spacing(15)
+                    .align_items(iced::Alignment::Center)
+                    .width(Length::Shrink)
+                    .height(Length::Shrink),
+            )
+            .width(Length::Fill)
+            .height(Length::Shrink)
     }
 
     pub fn tip_section<'a>(tip_icon: svg::Handle) -> impl Into<Element<'a, MainMessage>> {
@@ -336,5 +384,54 @@ pub mod settings {
             .spacing(12.)
             .width(Length::Shrink)
             .height(Length::Shrink)
+    }
+
+    pub fn device_name(device: MDnsDevice) -> impl Into<Element<'static, MainMessage>> {
+        Column::new()
+            .push(
+                Column::new()
+                    .push(
+                        text("This Device Name:")
+                            .size(20.)
+                            .height(28.)
+                            .horizontal_alignment(iced::alignment::Horizontal::Left)
+                            .vertical_alignment(iced::alignment::Vertical::Center),
+                    )
+                    .push(
+                        text_input("", &device.name)
+                            .on_input(|value| {
+                                MainMessage::ChangeSettings(SettingsModified::ChangeDeviceName(
+                                    value,
+                                ))
+                            })
+                            .style(get_input_keys_none_style()),
+                    )
+                    .spacing(5.)
+                    .width(Length::Shrink)
+                    .height(Length::Shrink),
+            )
+            .spacing(12.)
+            .width(Length::Shrink)
+            .height(Length::Shrink)
+    }
+
+    pub fn devices(
+        linked: Vec<MDnsDevice>,
+        devices: Vec<(MDnsDevice, bool)>,
+    ) -> impl Into<Element<'static, MainMessage>> {
+        let mut clip = linked
+            .iter()
+            .enumerate()
+            .rev()
+            .map(|(i, d)| render_device((i, &(d.clone(), false), false)))
+            .collect::<Vec<_>>();
+        clip.extend(
+            devices
+                .iter()
+                .enumerate()
+                .rev()
+                .map(|(i, d)| render_device((i, d, true))),
+        );
+        column(clip).width(Length::Fill).spacing(5)
     }
 }

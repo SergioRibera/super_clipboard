@@ -4,10 +4,7 @@ use std::error::Error;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::sync::Arc;
 
-use iced_native::futures::{
-    channel::mpsc::{self, Receiver, Sender},
-    SinkExt,
-};
+use iced_native::futures::channel::mpsc::{self, Receiver, Sender};
 use iced_native::{subscription, Subscription};
 use log::{info, trace};
 
@@ -48,49 +45,55 @@ pub fn create_socket() -> Arc<UdpSocket> {
     Arc::new(bind_multicast(&addr, &multi_addr).expect("Failed to bind multicast socket"))
 }
 
-pub fn start_sync() -> Subscription<Event> {
+pub fn start_sync(device: MDnsDevice) -> Subscription<Option<Event>> {
     struct Daemon;
     trace!("Starting Instantiate daemon");
 
-    subscription::channel(
+    subscription::unfold(
         std::any::TypeId::of::<Daemon>(),
-        100,
-        |mut output| async move {
-            let mut state = State::Disconnected;
+        State::Disconnected(device),
+        |state| async move {
+            match state {
+                State::Disconnected(device) => {
+                    let socket = create_socket();
+                    let multi_addr = SocketAddrV4::new(
+                        DEFAULT_MULTICAST.parse::<Ipv4Addr>().unwrap(),
+                        DEFAULT_PORT,
+                    );
+                    let multi_addr: SocketAddr = multi_addr.into();
+                    let (sender, receiver) = mpsc::channel(100);
 
-            loop {
-                match &mut state {
-                    State::Disconnected => {
-                        let socket = create_socket();
-                        let multi_addr = SocketAddrV4::new(
-                            DEFAULT_MULTICAST.parse::<Ipv4Addr>().unwrap(),
-                            DEFAULT_PORT,
-                        );
-                        let (sender, receiver) = mpsc::channel(100);
+                    socket
+                        .send_to(&MDnsMessage::Connected(device).to_bytes(), &multi_addr)
+                        .unwrap();
 
-                        output.send(Event::Connected(sender)).await.unwrap();
-                        state = State::Connected(multi_addr.into(), socket, receiver);
-                    }
-                    State::Connected(addr, socket, receiver) => {
-                        let mut buff = [0u8; 4096];
-                        if let Ok(n) = socket.recv(&mut buff) {
-                            if n == 0 {
-                                continue;
-                            }
+                    (
+                        Some(Event::Connected(sender)),
+                        State::Connected(multi_addr, socket, receiver),
+                    )
+                }
+                State::Connected(addr, socket, mut receiver) => {
+                    let mut buff = [0u8; 4096];
+                    if let Ok(n) = socket.recv(&mut buff) {
+                        if n > 0 {
                             let msg = MDnsMessage::from_bytes(&buff[..n]).unwrap();
                             // send to application
                             // app_sender.send(msg).unwrap();
-                            output.send(Event::Message(msg)).await.unwrap();
-                        }
-
-                        if let Ok(msg) = receiver.try_next().map(|r| r.unwrap()) {
-                            let msg = msg.clone();
-                            let udp_tx = socket.clone();
-                            let mut bytes = msg.to_bytes();
-                            // send to other devices
-                            udp_tx.send_to(&mut bytes[..], &*addr).unwrap();
+                            return (
+                                Some(Event::Message(msg)),
+                                State::Connected(addr, socket, receiver),
+                            );
                         }
                     }
+
+                    if let Ok(msg) = receiver.try_next().map(|r| r.unwrap()) {
+                        let msg = msg.clone();
+                        let udp_tx = socket.clone();
+                        let mut bytes = msg.to_bytes();
+                        // send to other devices
+                        udp_tx.send_to(&mut bytes[..], &addr).unwrap();
+                    }
+                    (None, State::Connected(addr, socket, receiver))
                 }
             }
         },
@@ -99,7 +102,7 @@ pub fn start_sync() -> Subscription<Event> {
 
 #[derive(Debug)]
 enum State {
-    Disconnected,
+    Disconnected(MDnsDevice),
     Connected(SocketAddr, Arc<UdpSocket>, Receiver<MDnsMessage>),
 }
 

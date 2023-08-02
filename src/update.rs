@@ -4,10 +4,12 @@ use device_query::DeviceQuery;
 use global_hotkey::{hotkey::HotKey, GlobalHotKeyEvent};
 use iced::{window, Command};
 use iced_native::futures::SinkExt;
+use iced_native::Executor;
 use log::trace;
 
 use crate::data::{save_pined, save_settings};
 use crate::sync::{self, MDnsMessage};
+use crate::ui::notify::accept_link_request;
 use crate::{
     settings::ClipboardItem,
     ui::{MainApp, MainMessage, SettingsModified},
@@ -18,7 +20,7 @@ fn send_to_devices(app: &MainApp, msg: MDnsMessage) {
     if let Some(sender) = app.sync_sender.clone() {
         let item = msg.clone();
         let mut sender = sender.clone();
-        tokio::spawn(async move {
+        iced::executor::Default::new().unwrap().spawn(async move {
             sender.send(item).await.unwrap();
         });
     }
@@ -66,9 +68,31 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
             }
             Command::none()
         }
+        MainMessage::SendLinkRequest(to) => {
+            if let Some(device) = app.devices.iter_mut().find(|d| d.0 == to) {
+                device.1 = true;
+                send_to_devices(
+                    app,
+                    MDnsMessage::LinkRequest {
+                        from: app.settings.device().clone(),
+                        to,
+                    },
+                );
+            }
+            Command::none()
+        }
         MainMessage::SyncDaemon(e) => {
+            let Some(e) = e else { return Command::none(); };
+            let my_device = app.settings.device();
             match e {
                 sync::Event::Message(msg) => match msg {
+                    sync::MDnsMessage::Connected(device) => {
+                        if !app.settings.linked_devices().contains(&device)
+                            && device.device_id != my_device.device_id
+                        {
+                            app.devices.push((device, false));
+                        }
+                    }
                     sync::MDnsMessage::Clipboard { device: _, item } => match item {
                         ClipboardItem::Text(_, c) => app.clipboard_ctx.set_text(c).unwrap(),
                         ClipboardItem::Image(_, width, height, bytes) => {
@@ -81,6 +105,32 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                                 .unwrap();
                         }
                     },
+                    sync::MDnsMessage::LinkRequest { from, to: me } => {
+                        if me.device_id == my_device.device_id {
+                            accept_link_request(
+                                &from.clone(),
+                                "",
+                                || {
+                                    app.settings.add_linked_device(from.clone());
+                                    // TODO: remove from list of devices
+                                    send_to_devices(
+                                        app,
+                                        MDnsMessage::LinkAccepted { from: me, to: from },
+                                    );
+                                },
+                                |_| {},
+                            );
+                        }
+                    }
+                    MDnsMessage::LinkAccepted {
+                        from: device_accept_me,
+                        to: me,
+                    } => {
+                        if me.device_id == my_device.device_id {
+                            app.settings.add_linked_device(device_accept_me);
+                        }
+                    }
+                    // TODO: add device to avialable device (app.devices) when detect new device
                     _ => {}
                 },
                 sync::Event::Connected(sender) => app.sync_sender = Some(sender),
@@ -213,6 +263,7 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                 SettingsModified::ChangePassUseNumber(v) => {
                     app.settings.password_generation_mut().number = v
                 }
+                SettingsModified::ChangeDeviceName(v) => app.settings.set_device_name(v),
             }
             Command::none()
         }

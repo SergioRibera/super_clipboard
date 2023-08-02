@@ -1,11 +1,11 @@
 use std::str::FromStr;
-use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use arboard::Clipboard;
 use device_query::DeviceState;
 use global_hotkey::hotkey::HotKey;
 use global_hotkey::GlobalHotKeyManager;
+use iced::futures::channel::mpsc::Sender;
 use iced::widget::scrollable::Properties;
 use iced::widget::{svg, Row};
 use iced::{
@@ -15,17 +15,18 @@ use iced::{
 use iced::{Application, Color, Command, Padding, Subscription};
 use iced_native::subscription::events_with;
 use log::{info, trace};
-use iced::futures::channel::mpsc::Sender;
 
 use crate::data::load_pined;
 use crate::gui::{home, settings};
 use crate::passwd::PasswordGenerator;
 use crate::settings::{AppSettings, ClipboardItem};
 use crate::settings::{PinnedClipboard, ThemeType};
-use crate::sync::{self, start_sync, MDnsMessage};
+use crate::sync::{self, start_sync, MDnsDevice, MDnsMessage};
 use crate::update::handle_update;
 
+pub mod device;
 pub mod item;
+pub mod notify;
 pub mod styles;
 
 pub struct MainApp {
@@ -41,6 +42,7 @@ pub struct MainApp {
     pub hotkeys_manager: GlobalHotKeyManager,
     pub hotkey: HotKey,
     pub last_data: LastData,
+    pub devices: Vec<(MDnsDevice, bool)>,
     back_icon: svg::Handle,
     tip_icon: svg::Handle,
     dark_icon: svg::Handle,
@@ -61,7 +63,7 @@ pub struct LastData {
 #[derive(Debug, Clone)]
 pub enum RouterView {
     Home,
-    Settings,
+    Settings(bool),
 }
 
 #[derive(Debug, Clone)]
@@ -79,7 +81,8 @@ pub enum MainMessage {
     RemoveClipboard(usize),
     SetClipboard(ClipboardItem),
     // Sync
-    SyncDaemon(sync::Event),
+    SendLinkRequest(MDnsDevice),
+    SyncDaemon(Option<sync::Event>),
     // Pin
     TogglePinClipboard(Option<usize>, Option<ClipboardItem>),
 }
@@ -99,6 +102,7 @@ pub enum SettingsModified {
     ChangePassUseUpper(bool),
     ChangePassUseLower(bool),
     ChangePassUseNumber(bool),
+    ChangeDeviceName(String),
 }
 
 impl Application for MainApp {
@@ -130,6 +134,24 @@ impl Application for MainApp {
                 visible: true,
                 follow: false,
                 sync_sender: None,
+                devices: vec![
+                    (
+                        MDnsDevice {
+                            device_id: "123".to_string(),
+                            name: "Otro dispositivo".to_string(),
+                            os: "linux".to_string(),
+                        },
+                        false,
+                    ),
+                    (
+                        MDnsDevice {
+                            device_id: "12345".to_string(),
+                            name: "Mobile".to_string(),
+                            os: "freebsd".to_string(),
+                        },
+                        false,
+                    ),
+                ],
                 pinned: load_pined(),
                 view: RouterView::Home,
                 device_state: DeviceState::new(),
@@ -174,6 +196,7 @@ impl Application for MainApp {
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         trace!("Subscription Batch");
+        let device = self.settings.device();
         Subscription::batch(vec![
             // Check Shortcuts
             iced::time::every(Duration::from_millis(200)).map(MainMessage::CheckShortcuts),
@@ -188,8 +211,7 @@ impl Application for MainApp {
                 }
                 _ => None,
             }),
-            start_sync()
-                .map(MainMessage::SyncDaemon),
+            start_sync(device.clone()).map(MainMessage::SyncDaemon),
         ])
     }
 
@@ -227,24 +249,51 @@ impl Application for MainApp {
                 .width(Length::Fill)
                 .height(Length::Fill)
                 .into(),
-            RouterView::Settings => Column::new()
-                .push(settings::back_bar(self.back_icon.clone()))
-                .push(settings::tip_section(self.tip_icon.clone()))
-                .push(
-                    scrollable(
-                        Row::new()
-                            .push(settings::list_options())
-                            .push(settings::list_elements(&self.settings))
-                            .spacing(10)
-                            .padding(10),
-                    )
-                    .height(Length::Fill)
-                    .vertical_scroll(Properties::new().width(5.).scroller_width(5.)),
-                )
-                .padding(Padding::from([10, 0]))
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .into(),
+            RouterView::Settings(show_devices) => {
+                if !show_devices {
+                    Column::new()
+                        .push(settings::back_bar(self.back_icon.clone()))
+                        .push(settings::tip_section(self.tip_icon.clone()))
+                        .push(
+                            scrollable(
+                                Row::new()
+                                    .push(settings::list_options())
+                                    .push(settings::list_elements(&self.settings))
+                                    .spacing(10)
+                                    .padding(10),
+                            )
+                            .height(Length::Fill)
+                            .vertical_scroll(Properties::new().width(5.).scroller_width(5.)),
+                        )
+                        .padding(Padding::from([10, 0]))
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .into()
+                } else {
+                    Column::new()
+                        .push(settings::back_bar(self.back_icon.clone()))
+                        .push(
+                            Column::new()
+                                .push(settings::device_name(self.settings.device().clone()))
+                                .push(
+                                    scrollable(settings::devices(
+                                        self.settings.linked_devices(),
+                                        self.devices.clone(),
+                                    ))
+                                    .height(Length::Fill)
+                                    .vertical_scroll(
+                                        Properties::new().width(5.).scroller_width(5.),
+                                    ),
+                                )
+                                .spacing(10.)
+                                .padding(Padding::from([5, 5])),
+                        )
+                        .padding(Padding::from([5, 5]))
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .into()
+                }
+            }
         };
 
         container(content)
