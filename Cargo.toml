@@ -3,7 +3,7 @@ name = "super_clipboard"
 authors = ["SergioRibera"]
 description = "GUI Application for manage history clipboard; Cli options overwrite settings"
 homepage = "https://github.com/SergioRibera/super_clipboard"
-license = "MIT"
+license = "MIT or Apache-2.0"
 version = "2.1.0"
 edition = "2021"
 
@@ -33,9 +33,12 @@ device_query = "1.1.3"
 display-info = "0.4.2"
 global-hotkey = "0.2.3"
 abomonation_derive = "0.5.0"
+shared = { path = "./shared" }
 clap = { version = "4.3.19", features = ["derive"] }
-arboard = { version = "3.2", features = ["wayland-data-control"] }
-tokio = { version = "1.29.1", default-features = false, features = ["rt", "io-util"] }
+tokio = { version = "1.29.1", default-features = false, features = [
+    "rt",
+    "io-util",
+] }
 iced = { version = "0.9.0", default-features = false, features = [
     "canvas",
     "glow",
@@ -43,9 +46,7 @@ iced = { version = "0.9.0", default-features = false, features = [
     "svg",
     "async-std",
 ] }
-chrono = { version = "0.4.26", default-features = false, features = [
-    "clock",
-    "std",
-    "serde",
+notify-rust = { version = "4.8.0", default-features = false, features = [
+    "dbus",
 ] }
-notify-rust = { version = "4.8.0", default-features = false, features = ["dbus"] }
+iced_winit = { version = "0.10.0", features = ["application"] }

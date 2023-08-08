@@ -63,3 +63,21 @@ description = "Generate release binary/lib"
 dependencies = ["fmt", "clippy", "test"]
 command = "cargo"
 args = ["build", "--release", "--target", "x86_64-unknown-linux-musl"]
+
+[tasks.uniffi]
+cwd = "./shared"
+command = "cargo"
+args = ["run", "--features=cli", "--bin", "uniffi-bindgen"]
+
+[tasks.gen-uniffi]
+cwd = "./shared"
+command = "cargo"
+args = [
+    "run",
+    "--features=cli",
+    "--bin",
+    "uniffi-bindgen",
+    "generate",
+    "src/mdns.udl",
+    "${@}",
+]

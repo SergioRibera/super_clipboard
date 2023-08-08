@@ -26,13 +26,6 @@ pub struct AppSettings {
     pub is_changed: bool,
 }
 
-#[derive(Abomonation, Clone, Default, Eq, PartialEq)]
-pub struct PinnedClipboard {
-    clipboard: Vec<ClipboardItem>,
-    #[unsafe_abomonate_ignore]
-    pub is_changed: bool,
-}
-
 #[derive(Abomonation, Clone, Eq, PartialEq)]
 pub struct PasswordGenSettings {
     pub len: usize,
@@ -48,25 +41,15 @@ pub enum ThemeType {
     Dark,
 }
 
-#[derive(Abomonation, Clone, Debug, Eq, PartialEq)]
-pub enum ClipboardItem {
-    Text(String, String),
-    Image(String, usize, usize, Vec<u8>),
-}
-
 impl Default for AppSettings {
     fn default() -> Self {
         let mode = dark_light::detect();
         let theme = match mode {
-            // Dark mode
-            dark_light::Mode::Dark => ThemeType::Dark,
             // Light mode
             dark_light::Mode::Light => ThemeType::Light,
-            // Unspecified
-            dark_light::Mode::Default => ThemeType::Dark,
+            // Unspecified And Dark mode
+            _ => ThemeType::Dark,
         };
-        let binding = gethostname::gethostname();
-        let hostname = binding.to_str();
 
         Self {
             theme,
@@ -81,28 +64,8 @@ impl Default for AppSettings {
             activation_keys: "super+shift+v".to_string(),
             clipboard: Vec::new(),
             linked_devices: Vec::new(),
-            device: MDnsDevice {
-                device_id: machine_uid::get().unwrap_or_default(),
-                name: hostname.unwrap_or("").to_string(),
-                os: std::env::consts::OS.to_string(),
-            },
+            device: MDnsDevice::default(),
         }
-    }
-}
-
-impl PinnedClipboard {
-    pub fn clipboard(&self) -> &[ClipboardItem] {
-        self.clipboard.as_ref()
-    }
-
-    pub fn add_item(&mut self, item: ClipboardItem) {
-        self.clipboard.push(item);
-        self.is_changed = true;
-    }
-
-    pub fn remove_item(&mut self, pos: usize) {
-        self.clipboard.remove(pos);
-        self.is_changed = true;
     }
 }
 
@@ -288,66 +251,5 @@ impl Default for PasswordGenSettings {
             lower: true,
             number: true,
         }
-    }
-}
-
-impl ClipboardItem {
-    pub fn format(&self, fmt: &str) -> String {
-        match self {
-            ClipboardItem::Text(date, _) => DateTime::parse_from_rfc3339(date)
-                .unwrap()
-                .format(fmt)
-                .to_string(),
-            ClipboardItem::Image(date, _, _, _) => DateTime::parse_from_rfc3339(date)
-                .unwrap()
-                .format(fmt)
-                .to_string(),
-        }
-    }
-
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let mut bytes = Vec::new();
-        unsafe {
-            abomonation::encode(self, &mut bytes).unwrap();
-        }
-        bytes
-    }
-
-    pub fn from_bytes(data: &[u8]) -> Result<ClipboardItem, std::io::Error> {
-        let mut data = data.to_vec();
-        match unsafe { abomonation::decode::<ClipboardItem>(&mut data) } {
-            Some((item, _)) => Ok(item.clone()),
-            None => Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                "Failed to decode data",
-            )),
-        }
-    }
-}
-
-impl ToString for ClipboardItem {
-    fn to_string(&self) -> String {
-        match self {
-            ClipboardItem::Text(_date, v) => v.clone(),
-            // @TODO:Convert to base64
-            ClipboardItem::Image(_date, w, h, _b) => format!("{w} - {h}"),
-        }
-    }
-}
-
-impl From<String> for ClipboardItem {
-    fn from(value: String) -> Self {
-        Self::Text(Utc::now().to_rfc3339(), value)
-    }
-}
-
-impl From<ImageData<'_>> for ClipboardItem {
-    fn from(value: ImageData) -> Self {
-        let ImageData {
-            width,
-            height,
-            bytes,
-        } = value;
-        Self::Image(Utc::now().to_rfc3339(), width, height, bytes.to_vec())
     }
 }

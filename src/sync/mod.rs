@@ -1,5 +1,3 @@
-mod mdns;
-
 use std::error::Error;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::sync::Arc;
@@ -8,7 +6,7 @@ use iced_native::futures::channel::mpsc::{self, Receiver, Sender};
 use iced_native::{subscription, Subscription};
 use log::{info, trace};
 
-pub use mdns::*;
+pub use shared::mdns::*;
 use std::net::UdpSocket;
 
 pub const _SERVICE_NAME: &str = "_super_clipboard-sync._udp.local";

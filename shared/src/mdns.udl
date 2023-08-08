@@ -1,0 +1,25 @@
+dictionary MDnsDevice {
+    string device_id;
+    string name;
+    string os;
+};
+
+[Enum]
+interface ClipboardItem {
+    Text(string date, string value);
+    Image(string date, u64 w, u64 h, sequence<u8> b);
+};
+
+[Enum]
+interface MDnsMessage {
+    Connected(MDnsDevice device);
+    LinkRequest(MDnsDevice from, MDnsDevice to);
+    LinkAccepted(MDnsDevice from, MDnsDevice to);
+    Clipboard(MDnsDevice device, ClipboardItem item);
+    Message(MDnsDevice device, string content);
+};
+
+namespace mdns {
+    MDnsMessage? decode_message([ByRef]bytes b);
+    bytes encode_message([ByRef]MDnsMessage d);
+};

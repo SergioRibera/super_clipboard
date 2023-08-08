@@ -1,1 +1,7 @@
+***.jks
 /target
+/shared/target
+/mobile/android/gradle
+/mobile/android/.gradle
+/mobile/android/build
+/mobile/android/.idea

@@ -1,0 +1,7 @@
+<resources>
+
+    <style name="Widget.@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen.MyView" parent="">
+        <item name="android:background">@color/gray_400</item>
+        <item name="exampleColor">@color/light_blue_400</item>
+    </style>
+</resources>

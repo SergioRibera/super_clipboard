@@ -1,0 +1,38 @@
+[package]
+name = "shared"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
+
+[lib]
+name = "superclipboard_shared"
+crate_type = ["cdylib"]
+
+[features]
+default = ["pc"]
+cli = ["uniffi", "uniffi/cli"]
+pc = ["machine-uid", "gethostname", "arboard/wayland-data-control"]
+mobile = ["uniffi", "uuid"]
+
+[dependencies]
+app_dirs2 = "2.5.5"
+abomonation = "0.7.3"
+abomonation_derive = "0.5.0"
+uniffi = { version = "0.24.3", optional = true, default-features = false }
+# uniffi = "0.24.3"
+machine-uid = { version = "0.4.0", optional = true }
+gethostname = { version = "0.4.3", optional = true }
+arboard = { version = "3.2", optional = true }
+chrono = { version = "0.4.26", default-features = false, features = [
+    "clock",
+    "std",
+] }
+uuid = { version = "1.4.1", optional = true, default-features = false, features = [
+    "v4",
+] }
+
+[build-dependencies]
+uniffi = { version = "0.24.3", features = ["build"] }

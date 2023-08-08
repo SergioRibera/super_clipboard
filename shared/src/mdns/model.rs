@@ -1,8 +1,6 @@
-use crate::settings::ClipboardItem;
+use crate::clipboard::ClipboardItem;
 
-
-const _MDNS_PORT: u16 = 5353;
-const _MDNS_ADDRESS: &str = "224.0.0.251";
+use abomonation::{decode, encode};
 
 #[derive(Abomonation, Clone, Debug, Eq, PartialEq)]
 pub struct MDnsDevice {
@@ -13,7 +11,9 @@ pub struct MDnsDevice {
 
 #[derive(Abomonation, Clone, Debug, Eq, PartialEq)]
 pub enum MDnsMessage {
-    Connected(MDnsDevice),
+    Connected {
+        device: MDnsDevice,
+    },
     LinkRequest {
         from: MDnsDevice,
         to: MDnsDevice,
@@ -31,6 +31,29 @@ pub enum MDnsMessage {
         device: MDnsDevice,
         content: String,
     },
+}
+
+impl Default for MDnsDevice {
+    fn default() -> Self {
+        #[cfg(feature = "mobile")]
+        let device_id = uuid::Uuid::new_v4().to_string();
+        #[cfg(feature = "mobile")]
+        let name = "Unknown".to_string();
+
+        #[cfg(feature = "pc")]
+        let device_id = machine_uid::get().unwrap_or_default();
+
+        #[cfg(feature = "pc")]
+        let name = {
+            let binding = gethostname::gethostname();
+            binding.into_string().unwrap()
+        };
+        Self {
+            device_id,
+            name,
+            os: std::env::consts::OS.to_string(),
+        }
+    }
 }
 
 impl MDnsMessage {
@@ -53,3 +76,17 @@ impl MDnsMessage {
         }
     }
 }
+
+pub fn decode_message(b: &[u8]) -> Option<MDnsMessage> {
+    let mut b = b.to_vec();
+    unsafe { decode::<MDnsMessage>(&mut b) }.map(|(msg, _)| msg.clone())
+}
+
+pub fn encode_message(d: &MDnsMessage) -> Vec<u8> {
+    let mut b = Vec::new();
+    unsafe {
+        encode(d, &mut b).unwrap();
+    }
+    b
+}
+
