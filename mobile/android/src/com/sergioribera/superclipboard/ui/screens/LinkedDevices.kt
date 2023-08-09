@@ -54,7 +54,7 @@ fun LinkedDevices(
             horizontalArrangement = Arrangement.spacedBy(15.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp),
         ) {
-            items(devices.value) { device -> DeviceComponent(device, true) }
+            items(devices.value) { device -> DeviceComponent(device, viewModel::onEvent, true) }
         }
     }
 

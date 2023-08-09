@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sergioribera.superclipboard.ui.DeviceLinkedEvent
 import com.sergioribera.superclipboard.ui.theme.AppTheme
 import com.sergioribera.superclipboard.ui.theme.Gunmetal
 import com.sergioribera.superclipboard.ui.theme.PowderBlue
@@ -36,7 +37,11 @@ import uniffi.mdns.MDnsDevice
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun DeviceComponent(device: MDnsDevice, isLinked: Boolean) {
+fun DeviceComponent(
+    device: MDnsDevice,
+    onEvent: (DeviceLinkedEvent) -> Unit,
+    isLinked: Boolean
+) {
     val icon = when (device.os) {
         "android" -> AppIcons.Android
         "macos" -> AppIcons.Apple
@@ -66,17 +71,19 @@ fun DeviceComponent(device: MDnsDevice, isLinked: Boolean) {
                 onClick = {
                     if (!isLinked && !requestSended) {
                         // TODO: send other device request to link
+                        onEvent(DeviceLinkedEvent.OnAddDevice(device))
                         requestSended = true
                     }
                 },
                 onLongClick = {
                     if (isLinked) {
                         // TODO: Send Remove Linked Request to other device
+                        onEvent(DeviceLinkedEvent.OnDeleteDevice(device))
                     }
                 }
             ),
         enabled = !requestSended,
-        ) {
+    ) {
         LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
             item {
                 Icon(
@@ -106,6 +113,6 @@ fun DeviceComponent(device: MDnsDevice, isLinked: Boolean) {
 @Composable
 fun PreviewDeviceComponentWindowsIcon() {
     AppTheme {
-        DeviceComponent( MDnsDevice("123", "La Poderosa", "android"), false)
+        DeviceComponent(MDnsDevice("123", "La Poderosa", "android"), {}, false)
     }
 }
