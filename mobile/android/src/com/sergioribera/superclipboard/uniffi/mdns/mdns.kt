@@ -632,6 +632,10 @@ sealed class MDnsMessage {
     data class Connected(
         val `device`: MDnsDevice
         ) : MDnsMessage()
+    data class Welcome(
+        val `from`: MDnsDevice, 
+        val `to`: MDnsDevice
+        ) : MDnsMessage()
     data class LinkRequest(
         val `from`: MDnsDevice, 
         val `to`: MDnsDevice
@@ -659,19 +663,23 @@ public object FfiConverterTypeMDnsMessage : FfiConverterRustBuffer<MDnsMessage>{
             1 -> MDnsMessage.Connected(
                 FfiConverterTypeMDnsDevice.read(buf),
                 )
-            2 -> MDnsMessage.LinkRequest(
+            2 -> MDnsMessage.Welcome(
                 FfiConverterTypeMDnsDevice.read(buf),
                 FfiConverterTypeMDnsDevice.read(buf),
                 )
-            3 -> MDnsMessage.LinkAccepted(
+            3 -> MDnsMessage.LinkRequest(
                 FfiConverterTypeMDnsDevice.read(buf),
                 FfiConverterTypeMDnsDevice.read(buf),
                 )
-            4 -> MDnsMessage.Clipboard(
+            4 -> MDnsMessage.LinkAccepted(
+                FfiConverterTypeMDnsDevice.read(buf),
+                FfiConverterTypeMDnsDevice.read(buf),
+                )
+            5 -> MDnsMessage.Clipboard(
                 FfiConverterTypeMDnsDevice.read(buf),
                 FfiConverterTypeClipboardItem.read(buf),
                 )
-            5 -> MDnsMessage.Message(
+            6 -> MDnsMessage.Message(
                 FfiConverterTypeMDnsDevice.read(buf),
                 FfiConverterString.read(buf),
                 )
@@ -685,6 +693,14 @@ public object FfiConverterTypeMDnsMessage : FfiConverterRustBuffer<MDnsMessage>{
             (
                 4
                 + FfiConverterTypeMDnsDevice.allocationSize(value.`device`)
+            )
+        }
+        is MDnsMessage.Welcome -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterTypeMDnsDevice.allocationSize(value.`from`)
+                + FfiConverterTypeMDnsDevice.allocationSize(value.`to`)
             )
         }
         is MDnsMessage.LinkRequest -> {
@@ -728,26 +744,32 @@ public object FfiConverterTypeMDnsMessage : FfiConverterRustBuffer<MDnsMessage>{
                 FfiConverterTypeMDnsDevice.write(value.`device`, buf)
                 Unit
             }
-            is MDnsMessage.LinkRequest -> {
+            is MDnsMessage.Welcome -> {
                 buf.putInt(2)
                 FfiConverterTypeMDnsDevice.write(value.`from`, buf)
                 FfiConverterTypeMDnsDevice.write(value.`to`, buf)
                 Unit
             }
-            is MDnsMessage.LinkAccepted -> {
+            is MDnsMessage.LinkRequest -> {
                 buf.putInt(3)
                 FfiConverterTypeMDnsDevice.write(value.`from`, buf)
                 FfiConverterTypeMDnsDevice.write(value.`to`, buf)
                 Unit
             }
-            is MDnsMessage.Clipboard -> {
+            is MDnsMessage.LinkAccepted -> {
                 buf.putInt(4)
+                FfiConverterTypeMDnsDevice.write(value.`from`, buf)
+                FfiConverterTypeMDnsDevice.write(value.`to`, buf)
+                Unit
+            }
+            is MDnsMessage.Clipboard -> {
+                buf.putInt(5)
                 FfiConverterTypeMDnsDevice.write(value.`device`, buf)
                 FfiConverterTypeClipboardItem.write(value.`item`, buf)
                 Unit
             }
             is MDnsMessage.Message -> {
-                buf.putInt(5)
+                buf.putInt(6)
                 FfiConverterTypeMDnsDevice.write(value.`device`, buf)
                 FfiConverterString.write(value.`content`, buf)
                 Unit

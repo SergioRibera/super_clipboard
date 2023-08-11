@@ -135,24 +135,7 @@ impl Application for MainApp {
                 visible: true,
                 follow: false,
                 sync_sender: None,
-                devices: vec![
-                    (
-                        MDnsDevice {
-                            device_id: "123".to_string(),
-                            name: "Otro dispositivo".to_string(),
-                            os: "linux".to_string(),
-                        },
-                        false,
-                    ),
-                    (
-                        MDnsDevice {
-                            device_id: "12345".to_string(),
-                            name: "Mobile".to_string(),
-                            os: "freebsd".to_string(),
-                        },
-                        false,
-                    ),
-                ],
+                devices: Vec::new(),
                 pinned: load_pined(),
                 view: RouterView::Home,
                 device_state: DeviceState::new(),

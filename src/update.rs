@@ -3,8 +3,8 @@ use std::str::FromStr;
 use device_query::DeviceQuery;
 use global_hotkey::{hotkey::HotKey, GlobalHotKeyEvent};
 use iced::{window, Command};
-use iced_native::Executor;
 use iced_native::futures::SinkExt;
+use iced_native::Executor;
 use log::trace;
 
 use crate::data::{save_pined, save_settings};
@@ -89,7 +89,22 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                         if !app.settings.linked_devices().contains(&device)
                             && device.device_id != my_device.device_id
                         {
+                            send_to_devices(
+                                app,
+                                MDnsMessage::Welcome {
+                                    from: my_device.clone(),
+                                    to: device.clone(),
+                                },
+                            );
                             app.devices.push((device, false));
+                        }
+                    }
+                    MDnsMessage::Welcome { from, to } => {
+                        if !app.settings.linked_devices().contains(&from)
+                            && from.device_id != my_device.device_id
+                            && to.device_id == my_device.device_id
+                        {
+                            app.devices.push((from, false));
                         }
                     }
                     MDnsMessage::Clipboard { device: _, item } => match item {
@@ -213,7 +228,9 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
         }
         MainMessage::SetClipboard(item) => {
             match item {
-                ClipboardItem::Text { date: _, value } => app.clipboard_ctx.set_text(value).unwrap(),
+                ClipboardItem::Text { date: _, value } => {
+                    app.clipboard_ctx.set_text(value).unwrap()
+                }
                 ClipboardItem::Image { date: _, w, h, b } => {
                     app.clipboard_ctx
                         .set_image(shared::arboard::ImageData {

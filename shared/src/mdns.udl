@@ -13,6 +13,7 @@ interface ClipboardItem {
 [Enum]
 interface MDnsMessage {
     Connected(MDnsDevice device);
+    Welcome(MDnsDevice from, MDnsDevice to);
     LinkRequest(MDnsDevice from, MDnsDevice to);
     LinkAccepted(MDnsDevice from, MDnsDevice to);
     Clipboard(MDnsDevice device, ClipboardItem item);

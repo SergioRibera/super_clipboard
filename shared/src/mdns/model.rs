@@ -11,6 +11,12 @@ pub struct MDnsDevice {
 
 #[derive(Abomonation, Clone, Debug, Eq, PartialEq)]
 pub enum MDnsMessage {
+    // other devices response `Connecteted` message
+    Welcome {
+        from: MDnsDevice,
+        to: MDnsDevice,
+    },
+    // When I join into multicast network
     Connected {
         device: MDnsDevice,
     },
