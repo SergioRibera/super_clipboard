@@ -515,7 +515,7 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
 
 
 
-@Entity
+@Entity(tableName = "devices")
 data class MDnsDevice (
     @PrimaryKey var `deviceId`: String,
     var `name`: String, 
