@@ -84,75 +84,78 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
             let Some(e) = e else { return Command::none(); };
             let my_device = app.settings.device();
             match e {
-                sync::Event::Message(msg) => match msg {
-                    MDnsMessage::Connected { device } => {
-                        if !app.settings.linked_devices().contains(&device)
-                            && device.device_id != my_device.device_id
-                        {
-                            send_to_devices(
-                                app,
-                                MDnsMessage::Welcome {
-                                    from: my_device.clone(),
-                                    to: device.clone(),
-                                },
-                            );
-                            app.devices.push((device, false));
+                sync::Event::Message(msg) => {
+                    log::trace!("Message Received: {msg:?}");
+                    match msg {
+                        MDnsMessage::Connected { device } => {
+                            if !app.settings.linked_devices().contains(&device)
+                                && device.device_id != my_device.device_id
+                            {
+                                send_to_devices(
+                                    app,
+                                    MDnsMessage::Welcome {
+                                        from: my_device.clone(),
+                                        to: device.clone(),
+                                    },
+                                );
+                                app.devices.push((device, false));
+                            }
                         }
-                    }
-                    MDnsMessage::Welcome { from, to } => {
-                        if !app.settings.linked_devices().contains(&from)
-                            && from.device_id != my_device.device_id
-                            && to.device_id == my_device.device_id
-                        {
-                            app.devices.push((from, false));
+                        MDnsMessage::Welcome { from, to } => {
+                            if !app.settings.linked_devices().contains(&from)
+                                && from.device_id != my_device.device_id
+                                && to.device_id == my_device.device_id
+                            {
+                                app.devices.push((from, false));
+                            }
                         }
-                    }
-                    MDnsMessage::Clipboard { device: _, item } => match item {
-                        ClipboardItem::Text { date: _, value } => {
-                            app.clipboard_ctx.set_text(value).unwrap()
+                        MDnsMessage::Clipboard { device: _, item } => match item {
+                            ClipboardItem::Text { date: _, value } => {
+                                app.clipboard_ctx.set_text(value).unwrap()
+                            }
+                            ClipboardItem::Image {
+                                date: _,
+                                w,
+                                h,
+                                b: bytes,
+                            } => {
+                                app.clipboard_ctx
+                                    .set_image(shared::arboard::ImageData {
+                                        width: w as usize,
+                                        height: h as usize,
+                                        bytes: bytes.into(),
+                                    })
+                                    .unwrap();
+                            }
+                        },
+                        MDnsMessage::LinkRequest { from, to: me } => {
+                            if me.device_id == my_device.device_id {
+                                accept_link_request(
+                                    &from.clone(),
+                                    "",
+                                    || {
+                                        app.settings.add_linked_device(from.clone());
+                                        // TODO: remove from list of devices
+                                        send_to_devices(
+                                            app,
+                                            MDnsMessage::LinkAccepted { from: me, to: from },
+                                        );
+                                    },
+                                    |_| {},
+                                );
+                            }
                         }
-                        ClipboardItem::Image {
-                            date: _,
-                            w,
-                            h,
-                            b: bytes,
+                        MDnsMessage::LinkAccepted {
+                            from: device_accept_me,
+                            to: me,
                         } => {
-                            app.clipboard_ctx
-                                .set_image(shared::arboard::ImageData {
-                                    width: w as usize,
-                                    height: h as usize,
-                                    bytes: bytes.into(),
-                                })
-                                .unwrap();
+                            if me.device_id == my_device.device_id {
+                                app.settings.add_linked_device(device_accept_me);
+                            }
                         }
-                    },
-                    MDnsMessage::LinkRequest { from, to: me } => {
-                        if me.device_id == my_device.device_id {
-                            accept_link_request(
-                                &from.clone(),
-                                "",
-                                || {
-                                    app.settings.add_linked_device(from.clone());
-                                    // TODO: remove from list of devices
-                                    send_to_devices(
-                                        app,
-                                        MDnsMessage::LinkAccepted { from: me, to: from },
-                                    );
-                                },
-                                |_| {},
-                            );
-                        }
+                        _ => {}
                     }
-                    MDnsMessage::LinkAccepted {
-                        from: device_accept_me,
-                        to: me,
-                    } => {
-                        if me.device_id == my_device.device_id {
-                            app.settings.add_linked_device(device_accept_me);
-                        }
-                    }
-                    _ => {}
-                },
+                }
                 sync::Event::Connected(sender) => app.sync_sender = Some(sender),
             }
             Command::none()
