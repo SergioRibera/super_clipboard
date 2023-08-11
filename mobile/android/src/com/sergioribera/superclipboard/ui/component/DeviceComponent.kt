@@ -5,7 +5,9 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -64,9 +66,10 @@ fun DeviceComponent(
         onClick = {
         },
         modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
             .padding(15.dp)
+            .height(180.dp)
+            .width(140.dp)
+            .fillMaxSize()
             .combinedClickable(
                 onClick = {
                     if (!isLinked && !requestSended) {
@@ -84,7 +87,10 @@ fun DeviceComponent(
             ),
         enabled = !requestSended,
     ) {
-        LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             item {
                 Icon(
                     icon,
