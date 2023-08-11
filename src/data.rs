@@ -4,7 +4,8 @@ use std::io::Read;
 use abomonation::{decode, encode};
 use app_dirs2::{data_root, AppDataType};
 
-use crate::settings::{AppSettings, PinnedClipboard};
+use crate::settings::AppSettings;
+use shared::pinned::PinnedClipboard;
 
 #[must_use]
 pub fn load_settings() -> AppSettings {

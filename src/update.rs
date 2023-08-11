@@ -3,15 +3,14 @@ use std::str::FromStr;
 use device_query::DeviceQuery;
 use global_hotkey::{hotkey::HotKey, GlobalHotKeyEvent};
 use iced::{window, Command};
-use iced_native::futures::SinkExt;
 use iced_native::Executor;
+use iced_native::futures::SinkExt;
 use log::trace;
 
 use crate::data::{save_pined, save_settings};
-use crate::sync::{self, MDnsMessage};
+use crate::sync::{self, ClipboardItem, MDnsMessage};
 use crate::ui::notify::accept_link_request;
 use crate::{
-    settings::ClipboardItem,
     ui::{MainApp, MainMessage, SettingsModified},
     utils::{self, check_clipboard, track_mouse},
 };
@@ -86,26 +85,33 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
             let my_device = app.settings.device();
             match e {
                 sync::Event::Message(msg) => match msg {
-                    sync::MDnsMessage::Connected(device) => {
+                    MDnsMessage::Connected { device } => {
                         if !app.settings.linked_devices().contains(&device)
                             && device.device_id != my_device.device_id
                         {
                             app.devices.push((device, false));
                         }
                     }
-                    sync::MDnsMessage::Clipboard { device: _, item } => match item {
-                        ClipboardItem::Text(_, c) => app.clipboard_ctx.set_text(c).unwrap(),
-                        ClipboardItem::Image(_, width, height, bytes) => {
+                    MDnsMessage::Clipboard { device: _, item } => match item {
+                        ClipboardItem::Text { date: _, value } => {
+                            app.clipboard_ctx.set_text(value).unwrap()
+                        }
+                        ClipboardItem::Image {
+                            date: _,
+                            w,
+                            h,
+                            b: bytes,
+                        } => {
                             app.clipboard_ctx
-                                .set_image(arboard::ImageData {
-                                    width,
-                                    height,
+                                .set_image(shared::arboard::ImageData {
+                                    width: w as usize,
+                                    height: h as usize,
                                     bytes: bytes.into(),
                                 })
                                 .unwrap();
                         }
                     },
-                    sync::MDnsMessage::LinkRequest { from, to: me } => {
+                    MDnsMessage::LinkRequest { from, to: me } => {
                         if me.device_id == my_device.device_id {
                             accept_link_request(
                                 &from.clone(),
@@ -130,7 +136,6 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
                             app.settings.add_linked_device(device_accept_me);
                         }
                     }
-                    // TODO: add device to avialable device (app.devices) when detect new device
                     _ => {}
                 },
                 sync::Event::Connected(sender) => app.sync_sender = Some(sender),
@@ -208,13 +213,13 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
         }
         MainMessage::SetClipboard(item) => {
             match item {
-                ClipboardItem::Text(_, c) => app.clipboard_ctx.set_text(c).unwrap(),
-                ClipboardItem::Image(_, width, height, bytes) => {
+                ClipboardItem::Text { date: _, value } => app.clipboard_ctx.set_text(value).unwrap(),
+                ClipboardItem::Image { date: _, w, h, b } => {
                     app.clipboard_ctx
-                        .set_image(arboard::ImageData {
-                            width,
-                            height,
-                            bytes: bytes.into(),
+                        .set_image(shared::arboard::ImageData {
+                            width: w as usize,
+                            height: h as usize,
+                            bytes: b.into(),
                         })
                         .unwrap();
                 }

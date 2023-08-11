@@ -1,8 +1,8 @@
-use arboard::Clipboard;
 use display_info::DisplayInfo;
 use log::{debug, info, trace};
+use shared::{arboard::Clipboard, clipboard::ClipboardItem};
 
-use crate::{settings::ClipboardItem, APP_HEIGHT, APP_MOUSE_MARGIN, APP_WIDTH};
+use crate::{APP_HEIGHT, APP_MOUSE_MARGIN, APP_WIDTH};
 
 #[derive(Debug, Clone)]
 pub enum Message {

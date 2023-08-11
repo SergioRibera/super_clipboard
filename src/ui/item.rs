@@ -5,7 +5,7 @@ use iced::{
     Element, Length,
 };
 
-use crate::settings::ClipboardItem;
+use shared::clipboard::ClipboardItem;
 
 use super::styles::{get_btn_transparent_style, get_tooltip_style};
 use super::{styles::get_item_container_style, MainMessage};
@@ -21,14 +21,14 @@ pub fn render_item(
 ) -> Element<'static, MainMessage> {
     let fmt_date = item.format(format_date);
     let content: Element<MainMessage> = match item {
-        ClipboardItem::Text(_, value) => {
+        ClipboardItem::Text { date: _, value } => {
             let mut col = Column::new().spacing(5.);
             if !format_date.is_empty() {
                 col = col.push(top_item(fmt_date, i_pinned, item, pin_icon, unpin_icon));
             }
             col.push(text(value.replace('\t', " ")).size(18.)).into()
         }
-        ClipboardItem::Image(_, w, h, b) => {
+        ClipboardItem::Image { date: _, w, h, b } => {
             let mut col = Column::new().spacing(5.);
             if !format_date.is_empty() {
                 col = col.push(top_item(fmt_date, i_pinned, item, pin_icon, unpin_icon));

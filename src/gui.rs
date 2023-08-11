@@ -26,9 +26,10 @@ pub mod home {
         widget::{button, column, svg, text, tooltip, Row},
         Element, Length,
     };
+    use shared::clipboard::ClipboardItem;
 
     use crate::{
-        settings::{ClipboardItem, ThemeType},
+        settings::ThemeType,
         ui::{
             item::render_item,
             styles::{get_btn_transparent_style, get_tooltip_style},

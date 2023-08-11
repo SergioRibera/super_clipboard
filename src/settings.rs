@@ -1,12 +1,12 @@
 #![allow(unused)]
 
 use app_dirs2::{data_root, AppDataType};
-use arboard::ImageData;
-use chrono::prelude::*;
 use clap::ValueEnum;
+use shared::chrono::prelude::*;
+use shared::arboard::ImageData;
 
 use crate::data::save_pined;
-use crate::sync::MDnsDevice;
+use shared::{mdns::MDnsDevice, clipboard::ClipboardItem};
 
 #[derive(Abomonation, Clone, Eq, PartialEq)]
 pub struct AppSettings {

@@ -6,7 +6,7 @@ use iced_native::futures::channel::mpsc::{self, Receiver, Sender};
 use iced_native::{subscription, Subscription};
 use log::{info, trace};
 
-pub use shared::mdns::*;
+pub use shared::{clipboard::*, mdns::*};
 use std::net::UdpSocket;
 
 pub const _SERVICE_NAME: &str = "_super_clipboard-sync._udp.local";
@@ -62,7 +62,7 @@ pub fn start_sync(device: MDnsDevice) -> Subscription<Option<Event>> {
                     let (sender, receiver) = mpsc::channel(100);
 
                     socket
-                        .send_to(&MDnsMessage::Connected(device).to_bytes(), &multi_addr)
+                        .send_to(&MDnsMessage::Connected { device }.to_bytes(), &multi_addr)
                         .unwrap();
 
                     (

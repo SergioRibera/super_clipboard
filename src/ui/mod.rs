@@ -1,7 +1,6 @@
 use std::str::FromStr;
 use std::time::{Duration, Instant};
 
-use arboard::Clipboard;
 use device_query::DeviceState;
 use global_hotkey::hotkey::HotKey;
 use global_hotkey::GlobalHotKeyManager;
@@ -15,14 +14,16 @@ use iced::{
 use iced::{Application, Color, Command, Padding, Subscription};
 use iced_native::subscription::events_with;
 use log::{info, trace};
+use shared::arboard::Clipboard;
+use shared::clipboard::ClipboardItem;
 
 use crate::data::load_pined;
 use crate::gui::{home, settings};
 use crate::passwd::PasswordGenerator;
-use crate::settings::{AppSettings, ClipboardItem};
-use crate::settings::{PinnedClipboard, ThemeType};
+use crate::settings::{AppSettings, ThemeType};
 use crate::sync::{self, start_sync, MDnsDevice, MDnsMessage};
 use crate::update::handle_update;
+use shared::pinned::PinnedClipboard;
 
 pub mod device;
 pub mod item;
