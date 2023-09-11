@@ -15,7 +15,7 @@ impl container::StyleSheet for ItemContainer {
                 b: bg.b,
                 a: bg.a + 0.025,
             })),
-            border_radius: 0.0,
+            border_radius: 0.0.into(),
             border_width: 0.0,
             border_color: palette.primary,
         }

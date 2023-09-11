@@ -5,6 +5,7 @@ use arboard::Clipboard;
 use device_query::DeviceState;
 use global_hotkey::hotkey::HotKey;
 use global_hotkey::GlobalHotKeyManager;
+use iced::subscription::events_with;
 use iced::widget::scrollable::Properties;
 use iced::widget::{svg, Row};
 use iced::{
@@ -12,7 +13,6 @@ use iced::{
     Element, Length, Theme,
 };
 use iced::{Application, Color, Command, Padding, Subscription};
-use iced_native::subscription::events_with;
 use log::{info, trace};
 
 use crate::data::load_pined;
@@ -176,7 +176,7 @@ impl Application for MainApp {
             iced::time::every(Duration::from_millis(self.settings.tick_save()))
                 .map(MainMessage::CheckSettings),
             events_with(|e, _status| match e {
-                iced_native::Event::Mouse(iced_native::mouse::Event::CursorLeft) => {
+                iced::Event::Mouse(iced::mouse::Event::CursorLeft) => {
                     Some(MainMessage::HiddeApplication)
                 }
                 _ => None,
@@ -211,7 +211,9 @@ impl Application for MainApp {
                         self.unpin_icon.clone(),
                     ))
                     .height(Length::Fill)
-                    .vertical_scroll(Properties::new().width(5.).scroller_width(5.)),
+                    .direction(scrollable::Direction::Vertical(
+                        Properties::new().width(5.).scroller_width(5.),
+                    )),
                 )
                 .spacing(10)
                 .padding(10)
@@ -230,7 +232,9 @@ impl Application for MainApp {
                             .padding(10),
                     )
                     .height(Length::Fill)
-                    .vertical_scroll(Properties::new().width(5.).scroller_width(5.)),
+                    .direction(scrollable::Direction::Vertical(
+                        Properties::new().width(5.).scroller_width(5.),
+                    )),
                 )
                 .padding(Padding::from([10, 0]))
                 .width(Length::Fill)

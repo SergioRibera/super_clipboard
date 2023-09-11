@@ -10,7 +10,7 @@ impl text_input::StyleSheet for TextInputStyle {
 
         text_input::Appearance {
             background: palette.background.base.color.into(),
-            border_radius: 2.0,
+            border_radius: 2.0.into(),
             border_width: 1.0,
             border_color: palette.background.strong.color,
             icon_color: palette.background.strong.color,
@@ -22,7 +22,7 @@ impl text_input::StyleSheet for TextInputStyle {
 
         text_input::Appearance {
             background: palette.background.base.color.into(),
-            border_radius: 2.0,
+            border_radius: 2.0.into(),
             border_width: 1.0,
             border_color: palette.background.base.text,
             icon_color: palette.background.base.text,
@@ -34,7 +34,7 @@ impl text_input::StyleSheet for TextInputStyle {
 
         text_input::Appearance {
             background: palette.background.base.color.into(),
-            border_radius: 2.0,
+            border_radius: 2.0.into(),
             border_width: 1.0,
             border_color: palette.primary.strong.color,
             icon_color: palette.primary.strong.color,
@@ -63,11 +63,11 @@ impl text_input::StyleSheet for TextInputStyle {
         palette.primary.weak.color
     }
 
-    fn disabled_color(&self, style: &Self::Style) -> iced_native::Color {
+    fn disabled_color(&self, style: &Self::Style) -> iced::Color {
         let palette = style.extended_palette();
 
         let [r, g, b, a] = palette.primary.base.text.into_linear();
-        iced_native::Color::new(r, g, b, a / 2.)
+        iced::Color::new(r, g, b, a / 2.)
     }
 
     fn disabled(&self, style: &Self::Style) -> text_input::Appearance {
@@ -75,7 +75,7 @@ impl text_input::StyleSheet for TextInputStyle {
 
         text_input::Appearance {
             background: palette.background.base.color.into(),
-            border_radius: 2.0,
+            border_radius: 2.0.into(),
             border_width: 1.0,
             border_color: palette.background.base.text,
             icon_color: palette.background.base.text,

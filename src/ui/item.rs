@@ -62,7 +62,7 @@ fn top_item(
     pin_icon: svg::Handle,
     unpin_icon: svg::Handle,
 ) -> Element<'static, MainMessage> {
-    let mut row = Row::new().align_items(iced_native::Alignment::Center);
+    let mut row = Row::new().align_items(iced::Alignment::Center);
     log::trace!("Index Pinned: {i_pinned:?}");
     let icon = i_pinned.as_ref().map(|_| unpin_icon).unwrap_or(pin_icon);
     let tooltip_text = i_pinned

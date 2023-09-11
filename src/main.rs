@@ -13,6 +13,7 @@ mod update;
 mod utils;
 
 use args::parse_cli;
+use iced::window::Level;
 use iced::{Application, Settings};
 use ui::MainApp;
 
@@ -37,7 +38,7 @@ fn main() -> iced::Result {
             resizable: false,
             decorations: false,
             transparent: settings.transparent(),
-            always_on_top: true,
+            level: Level::AlwaysOnTop,
             ..Default::default()
         },
         flags: settings,

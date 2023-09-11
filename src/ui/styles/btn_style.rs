@@ -8,7 +8,7 @@ impl button::StyleSheet for TransparentButton {
         button::Appearance {
             shadow_offset: iced::Vector::default(),
             background: None,
-            border_radius: 0.,
+            border_radius: 0.0.into(),
             border_width: 0.,
             border_color: style.palette().primary,
             text_color: style.palette().text,

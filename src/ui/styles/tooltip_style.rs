@@ -15,7 +15,7 @@ impl container::StyleSheet for TooltipContainer {
                 b: bg.b,
                 a: 1.,
             })),
-            border_radius: 2.0,
+            border_radius: 2.0.into(),
             border_width: 0.0,
             border_color: palette.primary,
         }
