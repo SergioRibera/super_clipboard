@@ -41,7 +41,6 @@ import uniffi.mdns.MDnsDevice
 @Composable
 fun DeviceComponent(
     device: MDnsDevice,
-    onEvent: (DeviceLinkedEvent) -> Unit,
     isLinked: Boolean
 ) {
     val icon = when (device.os) {
@@ -74,14 +73,14 @@ fun DeviceComponent(
                 onClick = {
                     if (!isLinked && !requestSended) {
                         // TODO: send other device request to link
-                        onEvent(DeviceLinkedEvent.OnAddDevice(device))
+                        // onEvent(DeviceLinkedEvent.OnAddDevice(device))
                         requestSended = true
                     }
                 },
                 onLongClick = {
                     if (isLinked) {
                         // TODO: Send Remove Linked Request to other device
-                        onEvent(DeviceLinkedEvent.OnDeleteDevice(device))
+                        // onEvent(DeviceLinkedEvent.OnDeleteDevice(device))
                     }
                 }
             ),
@@ -119,6 +118,6 @@ fun DeviceComponent(
 @Composable
 fun PreviewDeviceComponentWindowsIcon() {
     AppTheme {
-        DeviceComponent(MDnsDevice("123", "La Poderosa", "android"), {}, false)
+        DeviceComponent(MDnsDevice("123", "La Poderosa", "android"), false)
     }
 }

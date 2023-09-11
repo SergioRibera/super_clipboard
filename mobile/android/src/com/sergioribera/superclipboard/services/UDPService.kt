@@ -5,8 +5,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.wifi.WifiManager
 import android.os.IBinder
 import android.os.PowerManager
+import android.util.Log
 import androidx.core.net.toFile
 import com.sergioribera.superclipboard.data.PreferencesManager
 import com.sergioribera.superclipboard.ui.provideNotificationBuilder
@@ -23,13 +25,13 @@ import java.net.MulticastSocket
 
 class UDPService : Service() {
 
-    private val multicastAddress: InetAddress = Inet4Address.getByName("239.255.42.95")
+    private val multicastAddress: InetAddress = Inet4Address.getByName("239.255.42.98")
     private val port: Int = 50692
     private val bufferSize: Int = 4048
     private lateinit var socket: MulticastSocket
 
-    // private lateinit var multicastLock: MulticastLock
-    private lateinit var wakeLock: PowerManager.WakeLock
+    private lateinit var multicastLock: WifiManager.MulticastLock
+    // private lateinit var wakeLock: PowerManager.WakeLock
 
     private lateinit var myDevice: MDnsDevice
     private lateinit var clipboardManager: ClipboardManager
@@ -41,18 +43,17 @@ class UDPService : Service() {
         super.onCreate()
         devicesManager = PreferencesManager(application, "devices", listener = null)
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
-        wakeLock =
-            powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MulticastService:WakeLock")
+        // wakeLock =
+        //    powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MulticastService:WakeLock")
         clipboardManager = (this.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager)
         clipboardManager.addPrimaryClipChangedListener {
             onChangeClipboard()
         }
         myDevice = PreferencesManager(application, "devices", listener = null).get("me")!!
 
-        // var wifi = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
-        // multicastLock = wifi.createMulticastLock("superclipboard")
-        // multicastLock.setReferenceCounted(true)
-        // multicastLock.acquire()
+        var wifi = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
+        multicastLock = wifi.createMulticastLock("superclipboard")
+        multicastLock.setReferenceCounted(true)
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -60,7 +61,8 @@ class UDPService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        wakeLock.acquire()
+        multicastLock.acquire()
+        // wakeLock.acquire()
 
         Thread {
             socket = MulticastSocket(port)
@@ -82,6 +84,7 @@ class UDPService : Service() {
                 socket.receive(receivePacket)
                 val msg = decodeMessage(receiveBuffer)
 
+                Log.i("udp::service", "$msg")
                 when (msg) {
                     is MDnsMessage.Connected -> {
                         addToAvailableDevices(msg.device)
@@ -193,7 +196,7 @@ class UDPService : Service() {
         super.onDestroy()
         socket.leaveGroup(multicastAddress)
         socket.close()
-        wakeLock.release()
-        // multicastLock.release()
+        // wakeLock.release()
+        multicastLock.release()
     }
 }

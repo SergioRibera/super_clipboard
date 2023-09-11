@@ -17,14 +17,11 @@ package uniffi.mdns;
 // compile the Rust component. The easiest way to ensure this is to bundle the Kotlin
 // helpers directly inline like we're doing here.
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import com.sun.jna.Library
 import com.sun.jna.IntegerType
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
-import com.sun.jna.Callback
 import com.sun.jna.ptr.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -515,10 +512,9 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
 
 
 
-@Entity(tableName = "devices")
 data class MDnsDevice (
-    @PrimaryKey var `deviceId`: String,
-    var `name`: String, 
+    var `deviceId`: String,
+    var `name`: String,
     var `os`: String
 ) {
     

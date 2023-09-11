@@ -25,6 +25,10 @@ class PreferencesManager(
             preferences.registerOnSharedPreferenceChangeListener(listener)
     }
 
+    fun containsKey(k: String): Boolean {
+        return preferences.contains(k)
+    }
+
     /**
      * Saves object into the Preferences.
      *
