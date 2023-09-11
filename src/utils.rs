@@ -1,6 +1,6 @@
 use arboard::Clipboard;
 use display_info::DisplayInfo;
-use log::{debug, info, trace};
+use log::info;
 
 use crate::{settings::ClipboardItem, APP_HEIGHT, APP_MOUSE_MARGIN, APP_WIDTH};
 
@@ -12,40 +12,29 @@ pub enum Message {
 
 pub fn track_mouse(old: (i32, i32), coords: (i32, i32)) -> (i32, i32) {
     let (old_x, old_y) = old;
-    let (new_x, new_y) = coords;
-    if old_x != new_x || old_y != new_y {
-        // TODO: ideally here check if mouse is not hover window
-        let (set_x, set_y) = if let Ok(display_info) = DisplayInfo::from_point(new_x, new_y) {
-            debug!("Device Information based on point ({new_x}x{new_y}): {display_info:?}");
-            let x = if new_x
-                > (display_info.y + display_info.width as i32) - APP_WIDTH - APP_MOUSE_MARGIN
-            {
-                // right limit
-                new_x - (APP_WIDTH - APP_MOUSE_MARGIN)
-            } else if new_x < display_info.x + APP_WIDTH + APP_MOUSE_MARGIN {
-                // Left
-                new_x
-            } else {
-                // center or default
-                new_x - (APP_WIDTH / 2)
-            };
-            let y =
-                if new_y > ((display_info.y + display_info.height as i32) / 2) - APP_MOUSE_MARGIN {
-                    // top
-                    new_y - APP_HEIGHT + APP_MOUSE_MARGIN
-                } else {
-                    // bottom
-                    new_y - APP_MOUSE_MARGIN
-                };
-            (x, y)
-        } else {
-            (new_x - (APP_WIDTH / 2), new_y - APP_MOUSE_MARGIN)
-        };
-        debug!("New mouse position: {set_x}x{set_y}");
-        trace!("Sending new mouse position");
-        return (set_x, set_y);
+    let (x, y) = coords;
+    let Ok(DisplayInfo { width, height, x: display_x, y: display_y, .. }) = DisplayInfo::from_point(x, y) else { return coords; };
+
+    if old_x == x || old_y == y {
+        return coords;
     }
-    coords
+
+    let left_x = ((x - display_x) as u32) < (width / 2);
+    let bottom_y = ((y - display_y) as u32) > (height / 2);
+
+    match (left_x, bottom_y) {
+        // Top Left
+        (true, false) => (x - APP_MOUSE_MARGIN, y - APP_MOUSE_MARGIN),
+        // Top Right
+        (false, false) => ((x - APP_WIDTH) + APP_MOUSE_MARGIN, y - APP_MOUSE_MARGIN),
+        // Bottom Left
+        (true, true) => (x - APP_MOUSE_MARGIN, y - APP_HEIGHT + APP_MOUSE_MARGIN),
+        // Bottom Right
+        (false, true) => (
+            (x - APP_WIDTH) + APP_MOUSE_MARGIN,
+            y - APP_HEIGHT + APP_MOUSE_MARGIN,
+        ),
+    }
 }
 
 pub fn check_clipboard(
