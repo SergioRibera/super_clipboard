@@ -17,29 +17,29 @@ name = "superclipboard"
 path = "src/main.rs"
 
 [dependencies]
-open = "4.2.0"
-log = "0.4.19"
+open = "5.0.0"
+log = "0.4.20"
 rlsf = "0.2.1"
 dark-light = "1.0.0"
 abomonation = "0.7.3"
 env_logger = "0.10.0"
 iced_native = "0.10.3"
 device_query = "1.1.3"
-display-info = "0.4.2"
+display-info = "0.4.3"
 iced_tiny_skia = "0.1.0"
 arboard = { version = "3.2", features = ["wayland-data-control"] }
-clap = { version = "4.3.8", features = ["derive"] }
+clap = { version = "4.4.7", features = ["derive"] }
 iced = { version = "0.10.0", default-features = false, features = [
     "image",
     "svg",
     "tokio",
 ] }
-chrono = { version = "0.4.26", default-features = false, features = [
+chrono = { version = "0.4.31", default-features = false, features = [
     "clock",
     "std",
     "serde",
 ] }
 abomonation_derive = "0.5.0"
 app_dirs2 = "2.5.5"
-global-hotkey = "0.2.2"
+global-hotkey = "0.4.0"
 rand = "0.8.5"
