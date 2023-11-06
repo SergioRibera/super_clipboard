@@ -210,6 +210,7 @@ impl Application for MainApp {
                         self.pin_icon.clone(),
                         self.unpin_icon.clone(),
                     ))
+                    .id(scrollable::Id::new("clipboard_scroll"))
                     .height(Length::Fill)
                     .direction(scrollable::Direction::Vertical(
                         Properties::new().width(5.).scroller_width(5.),

@@ -2,10 +2,12 @@ use std::str::FromStr;
 
 use device_query::DeviceQuery;
 use global_hotkey::{hotkey::HotKey, GlobalHotKeyEvent};
+use iced::widget::scrollable;
 use iced::{window, Command};
 use log::trace;
 
 use crate::data::{save_pined, save_settings};
+use crate::ui::RouterView;
 use crate::{
     settings::ClipboardItem,
     ui::{MainApp, MainMessage, SettingsModified},
@@ -15,9 +17,15 @@ use crate::{
 pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMessage> {
     match message {
         MainMessage::HiddeApplication => {
-            app.visible = false;
-            app.follow = true;
-            window::change_mode(window::Mode::Hidden)
+            #[cfg(not(debug_assertions))]
+            {
+                app.visible = false;
+                app.follow = true;
+                app.view = RouterView::Settings;
+                window::change_mode(window::Mode::Hidden)
+            }
+            #[cfg(debug_assertions)]
+            Command::none()
         }
         MainMessage::Open(url) => {
             if url.is_empty() {
@@ -72,6 +80,9 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
             ) {
                 match msg {
                     utils::Message::AddClipboard(item) => {
+                        if let ClipboardItem::Text(_, s) = &item {
+                            app.clipboard_ctx.set_text(s).unwrap();
+                        }
                         app.settings.push(item);
                     }
                     utils::Message::RemoveLastClipboard => {
@@ -85,18 +96,28 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
         }
         MainMessage::CheckShortcuts(_) => {
             let mut commands = Vec::new();
-            if GlobalHotKeyEvent::receiver().try_recv().is_ok() {
-                app.visible = true;
-                commands.push(window::change_mode(window::Mode::Windowed));
-            }
-
-            if app.follow && !commands.is_empty() {
+            if app.follow {
                 app.follow = false;
                 let (x, y) =
                     track_mouse(app.last_data.mouse_pos, app.device_state.get_mouse().coords);
                 app.last_data.mouse_pos = (x, y);
                 commands.push(window::move_to(x, y));
             }
+
+            if GlobalHotKeyEvent::receiver().try_recv().is_ok() {
+                app.visible = true;
+                app.view = RouterView::Home;
+
+                commands.push(scrollable::scroll_to(
+                    scrollable::Id::new("clipboard_scroll"),
+                    scrollable::AbsoluteOffset { x: 0., y: 0. },
+                ));
+                commands.push(window::change_mode(window::Mode::Windowed));
+            } else {
+                app.follow = true;
+                commands.clear();
+            }
+
             Command::batch(commands)
         }
         MainMessage::CheckSettings(_) => {

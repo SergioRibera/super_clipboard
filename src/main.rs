@@ -41,6 +41,7 @@ fn main() -> iced::Result {
             level: Level::AlwaysOnTop,
             ..Default::default()
         },
+        antialiasing: true,
         flags: settings,
         ..Default::default()
     })

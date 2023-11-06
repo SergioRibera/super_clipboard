@@ -4,6 +4,7 @@ use iced::{
     widget::{container, image, mouse_area, text, Column},
     Element, Length,
 };
+use iced_tiny_skia::core::text::Shaping;
 
 use crate::settings::ClipboardItem;
 
@@ -26,7 +27,12 @@ pub fn render_item(
             if !format_date.is_empty() {
                 col = col.push(top_item(fmt_date, i_pinned, item, pin_icon, unpin_icon));
             }
-            col.push(text(value.replace('\t', " ")).size(18.)).into()
+            col.push(
+                text(value.replace('\t', " "))
+                    .shaping(Shaping::Advanced)
+                    .size(14.),
+            )
+            .into()
         }
         ClipboardItem::Image(_, w, h, b) => {
             let mut col = Column::new().spacing(5.);
