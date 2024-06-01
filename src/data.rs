@@ -32,12 +32,9 @@ pub fn save_settings(value: &AppSettings) {
     if let Ok(mut path) = data_root(AppDataType::UserConfig) {
         path.push("super_clipboard");
 
-        match create_dir_all(&path){
-            Ok(_x) => {}
-            Err(x) => {
-                log::error!("An error ocurred when creating the config directory: {}", x);
-                return;
-            }
+        if let Err(e) = create_dir_all(&path){
+            log::error!("An error ocurred when creating the config directory: {e}");
+            return;
         }
 
         path.push("settings");
