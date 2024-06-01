@@ -50,6 +50,8 @@ bspwm example
 superclipboard &
 ```
 
+Then, you can show the clipboard with the default shortcut `Super + Shift + V`
+
 To show Logs you need set `SUPER_CLIPBOARD_LOG` env variable, here some examples
 > **NOTE:** For more details see [docs](https://docs.rs/env_logger/latest/env_logger/#enabling-logging)
 ```bash
