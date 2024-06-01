@@ -257,9 +257,10 @@ impl Application for MainApp {
         match self.settings.get_theme() {
             ThemeType::Light => {
                 let palette = Theme::Light.palette();
+                let bg = palette.background;
                 Theme::custom(iced::theme::Palette {
                     primary,
-                    background: Color::from_rgba8(200, 200, 200, 0.025),
+                    background: Color::from_rgba(bg.r, bg.g, bg.b, 0.025),
                     ..palette
                 })
             }
