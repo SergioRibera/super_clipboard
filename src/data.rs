@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::fs::{create_dir_all, File};
 use std::io::Read;
 
 use abomonation::{decode, encode};
@@ -31,6 +31,15 @@ pub fn load_settings() -> AppSettings {
 pub fn save_settings(value: &AppSettings) {
     if let Ok(mut path) = data_root(AppDataType::UserConfig) {
         path.push("super_clipboard");
+
+        match create_dir_all(&path){
+            Ok(_x) => {}
+            Err(x) => {
+                log::error!("An error ocurred when creating the config directory: {}", x);
+                return;
+            }
+        }
+
         path.push("settings");
         path.set_extension("data");
 
@@ -68,6 +77,15 @@ pub fn load_pined() -> PinnedClipboard {
 pub fn save_pined(value: &PinnedClipboard) {
     if let Ok(mut path) = data_root(AppDataType::UserConfig) {
         path.push("super_clipboard");
+
+        match create_dir_all(&path){
+            Ok(_x) => {}
+            Err(x) => {
+                log::error!("An error ocurred when creating the config directory: {}", x);
+                return;
+            }
+        }
+    
         path.push("settings");
         path.set_extension("pined");
 
