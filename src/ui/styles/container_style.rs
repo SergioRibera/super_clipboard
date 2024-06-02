@@ -13,7 +13,7 @@ impl container::StyleSheet for ItemContainer {
                 r: bg.r,
                 g: bg.g,
                 b: bg.b,
-                a: bg.a + 0.025,
+                a: bg.a,
             })),
             border_radius: 0.0.into(),
             border_width: 0.0,

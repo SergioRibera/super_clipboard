@@ -5,8 +5,6 @@ use arboard::ImageData;
 use chrono::prelude::*;
 use clap::ValueEnum;
 
-use crate::data::save_pined;
-
 #[derive(Abomonation, Clone, Eq, PartialEq)]
 pub struct AppSettings {
     max_capacity: u64,

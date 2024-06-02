@@ -13,7 +13,16 @@ pub enum Message {
 pub fn track_mouse(old: (i32, i32), coords: (i32, i32)) -> (i32, i32) {
     let (old_x, old_y) = old;
     let (x, y) = coords;
-    let Ok(DisplayInfo { width, height, x: display_x, y: display_y, .. }) = DisplayInfo::from_point(x, y) else { return coords; };
+    let Ok(DisplayInfo {
+        width,
+        height,
+        x: display_x,
+        y: display_y,
+        ..
+    }) = DisplayInfo::from_point(x, y)
+    else {
+        return coords;
+    };
 
     if old_x == x || old_y == y {
         return coords;
