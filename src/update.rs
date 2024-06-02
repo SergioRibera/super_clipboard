@@ -6,7 +6,7 @@ use iced::widget::scrollable;
 use iced::{window, Command};
 use log::trace;
 
-use crate::data::{save_pined, save_settings};
+use crate::data::save;
 use crate::ui::RouterView;
 use crate::{
     settings::ClipboardItem,
@@ -123,16 +123,16 @@ pub fn handle_update(app: &mut MainApp, message: MainMessage) -> Command<MainMes
         MainMessage::CheckSettings(_) => {
             if app.pinned.is_changed {
                 app.pinned.is_changed = false;
-                save_pined(&app.pinned);
+                save(&app.pinned, "pined");
             }
             if app.settings.is_changed {
                 app.settings.is_changed = false;
                 if !app.settings.store() {
                     let mut set = app.settings.clone();
                     set.set_clipboard(Vec::new());
-                    save_settings(&set);
+                    save(&set, "data");
                 } else {
-                    save_settings(&app.settings);
+                    save(&app.settings, "data");
                 }
             }
             Command::none()

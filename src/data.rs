@@ -1,7 +1,7 @@
 use std::fs::{create_dir_all, File};
 use std::io::Read;
 
-use abomonation::{decode, encode};
+use abomonation::{decode, encode, Abomonation};
 use app_dirs2::{data_root, AppDataType};
 
 use crate::settings::{AppSettings, PinnedClipboard};
@@ -28,27 +28,6 @@ pub fn load_settings() -> AppSettings {
     AppSettings::default()
 }
 
-pub fn save_settings(value: &AppSettings) {
-    if let Ok(mut path) = data_root(AppDataType::UserConfig) {
-        path.push("super_clipboard");
-
-        if let Err(e) = create_dir_all(&path){
-            log::error!("An error ocurred when creating the config directory: {e}");
-            return;
-        }
-
-        path.push("settings");
-        path.set_extension("data");
-
-        log::info!("Settings saved into \"{path:?}\"");
-        if let Ok(mut file) = File::create(path) {
-            unsafe {
-                encode(value, &mut file).unwrap();
-            }
-        }
-    }
-}
-
 #[must_use]
 pub fn load_pined() -> PinnedClipboard {
     let Ok(mut path) = data_root(AppDataType::UserConfig) else {
@@ -71,20 +50,17 @@ pub fn load_pined() -> PinnedClipboard {
     PinnedClipboard::default()
 }
 
-pub fn save_pined(value: &PinnedClipboard) {
+pub fn save<T: Abomonation>(value: &T, ext: &str){
     if let Ok(mut path) = data_root(AppDataType::UserConfig) {
         path.push("super_clipboard");
 
-        match create_dir_all(&path){
-            Ok(_x) => {}
-            Err(x) => {
-                log::error!("An error ocurred when creating the config directory: {}", x);
-                return;
-            }
+        if let Err(e) = create_dir_all(&path){
+            log::error!("An error ocurred when creating the config directory: {e}");
+            return;
         }
     
         path.push("settings");
-        path.set_extension("pined");
+        path.set_extension(ext);
 
         log::info!("Settings saved into \"{path:?}\"");
         if let Ok(mut file) = File::create(path) {
