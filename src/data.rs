@@ -50,15 +50,15 @@ pub fn load_pined() -> PinnedClipboard {
     PinnedClipboard::default()
 }
 
-pub fn save<T: Abomonation>(value: &T, ext: &str){
+pub fn save<T: Abomonation>(value: &T, ext: &str) {
     if let Ok(mut path) = data_root(AppDataType::UserConfig) {
         path.push("super_clipboard");
 
-        if let Err(e) = create_dir_all(&path){
+        if let Err(e) = create_dir_all(&path) {
             log::error!("An error ocurred when creating the config directory: {e}");
             return;
         }
-    
+
         path.push("settings");
         path.set_extension(ext);
 
